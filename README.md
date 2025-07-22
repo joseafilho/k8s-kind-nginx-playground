@@ -44,8 +44,8 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
 
 1. **Clone o repositório:**
    ```sh
-   git clone <url-do-repositorio>
-   cd k8s-kind-nginx
+   git clone git@github.com:joseafilho/k8s-kind-nginx-playground.git
+   cd k8s-kind-nginx-playgroud
    ```
 
 2. **Suba o ambiente com Vagrant:**
@@ -66,6 +66,11 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
      Acesso a máquina virtual via ssh:**
      ```sh
      vagrant ssh
+     ```
+   
+   - * *Com interface gráfica(Rodando somente um comando) - Em Teste:* *
+     ```sh
+     ./create-enviroment-gui.sh
      ```
 
 ## Validação de Funcionamento
