@@ -40,12 +40,6 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
 | INSTALL_BROWSER      | "1" ou vazio   | Se "1", instala o navegador Firefox na VM.                             |
 | SETUP_KIND_K8S       | "1" ou vazio   | Se "1", copia os arquivos do projeto e executa o script bootstrap.sh.  |
 
-Para definir uma variável, utilize antes do comando `vagrant up` ou `vagrant reload --provision`, por exemplo:
-
-```sh
-WITH_GUI=1 INSTALL_BROWSER=1 SETUP_KIND_K8S=1 vagrant up
-```
-
 ## Como usar
 
 1. **Clone o repositório:**
