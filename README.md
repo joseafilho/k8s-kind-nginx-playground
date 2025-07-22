@@ -19,15 +19,20 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
 ```
 .
 ├── apache-hello/
-│   ├── hello-apache-cm.yaml      # ConfigMap para o Apache
-│   ├── hello-apache-dpl.yaml     # Deployment do Apache
-│   ├── hello-apache-ing.yaml     # Ingress para expor o serviço
-│   └── hello-apache-svc.yaml     # Service para o Apache
+│   ├── hello-apache-app.png        # Exemplo visual da aplicação Apache
+│   ├── hello-apache-cm.yaml        # ConfigMap para o Apache
+│   ├── hello-apache-dpl.yaml       # Deployment do Apache
+│   ├── hello-apache-ing.yaml       # Ingress para expor o serviço Apache
+│   └── hello-apache-svc.yaml       # Service para o Apache
 ├── ingress-nginx/
-│   └── ingress.yaml              # Configuração do Ingress Nginx
-├── bootstrap.sh                  # Script de bootstrap para provisionamento
-├── Vagrantfile                   # Arquivo de configuração do Vagrant
-└── README.md                     # Este arquivo
+│   └── ingress.yaml                # Configuração do Ingress Nginx
+├── kubernetes-dashboard/
+│   ├── kube-dashboard.png          # Exemplo visual do Dashboard
+│   ├── dash-ing.yaml               # Ingress para o Dashboard
+│   └── dash-admin.yaml             # ServiceAccount e permissões para o Dashboard
+├── bootstrap.sh                    # Script de bootstrap para provisionamento
+├── Vagrantfile                     # Arquivo de configuração do Vagrant
+└── README.md                       # Este arquivo
 ```
 
 ## Variáveis de Ambiente para Personalização da VM
@@ -81,6 +86,7 @@ WITH_GUI=1 INSTALL_BROWSER=1 SETUP_KIND_K8S=1 vagrant up
   4. Exemplo do resultado esperado:
      ![Exemplo Hello Apache App](./apache-hello/hello-apache-app.png)
   5. Em outra aba acesse o endereço: https://domain.local:30002/
+  6. Você deve ver a página do Kubernetes Dashboard.
      ![Kubernetes Dashboard](./kubernetes-dashboard/kube-dashboard.png)
 
 - **Somente terminal (sem GUI):**
