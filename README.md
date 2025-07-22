@@ -8,10 +8,7 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
 
 ## Pré-requisitos
 
-- [Docker](https://www.docker.com/)
 - [Vagrant](https://www.vagrantup.com/)
-- [Kind](https://kind.sigs.k8s.io/)
-- [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [VirtualBox](https://www.virtualbox.org/) (ou outro provider compatível com Vagrant)
 
 ## Estrutura do Projeto
