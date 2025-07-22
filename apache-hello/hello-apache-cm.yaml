@@ -53,8 +53,9 @@ data:
     </head>
     <body>
       <div class="container">
-        <h1>Conexão via ingress-nginx bem sucedida :)</h1>
+        <h2>Conexão via ingress bem sucedida :)</h2>
         <p>Hello Apache App.</p>
+        <p>Container image: httpd:alpine</p>
       </div>
     </body>
     </html>
