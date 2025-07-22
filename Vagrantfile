@@ -6,8 +6,8 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "VirtualBox" do |vb|
     vb.name = "kind-nginx"
-    vb.memory = 2048
-    vb.cpus = 2
+    vb.memory = 4096
+    vb.cpus = 4
   end
 
   # Declare environment variables.
@@ -39,8 +39,13 @@ Vagrant.configure("2") do |config|
 
   if setup_kind_k8s
     # Copy files.
-    config.vm.provision "file", source: "./apache-hello", destination: "$HOME/"
-    config.vm.provision "file", source: "./ingress-nginx", destination: "$HOME/"
+    config.vm.provision "shell", inline: <<-SHELL
+      mkdir -p $HOME/playground
+    SHELL
+
+    config.vm.provision "file", source: "./apache-hello", destination: "$HOME/playground/"
+    config.vm.provision "file", source: "./ingress-nginx", destination: "$HOME/playground/"
+    config.vm.provision "file", source: "./kubernetes-dashboard", destination: "$HOME/playground/"
 
     # Run install tools.
     config.vm.provision :shell, path: "bootstrap.sh"

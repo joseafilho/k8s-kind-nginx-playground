@@ -80,7 +80,7 @@ echo "[End] Config /etc/hosts."
 
 # Create ingress controller.
 echo "[Begin] Create ingress controller."
-kubectl apply -f /home/vagrant/ingress-nginx/ingress.yaml
+kubectl apply -f /home/vagrant/playground/ingress-nginx/ingress.yaml
 kubectl wait --namespace ingress-nginx \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/component=controller \
@@ -94,8 +94,22 @@ echo "[End] Create namespaces."
 
 # Create apache hello.
 echo "[Begin] Create apache hello."
-kubectl apply -f /home/vagrant/apache-hello/hello-apache-cm.yaml
-kubectl apply -f /home/vagrant/apache-hello/hello-apache-dpl.yaml
-kubectl apply -f /home/vagrant/apache-hello/hello-apache-svc.yaml
-kubectl apply -f /home/vagrant/apache-hello/hello-apache-ing.yaml
+kubectl apply -f /home/vagrant/playground/apache-hello/hello-apache-cm.yaml
+kubectl apply -f /home/vagrant/playground/apache-hello/hello-apache-dpl.yaml
+kubectl apply -f /home/vagrant/playground/apache-hello/hello-apache-svc.yaml
+kubectl apply -f /home/vagrant/playground/apache-hello/hello-apache-ing.yaml
 echo "[End] Create apache hello."
+
+# Install kubernetes dashboard.
+echo "[Begin] Install kubernetes dashboard."
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+kubectl apply -f /home/vagrant/playground/kubernetes-dashboard/dash-admin.yaml
+kubectl -n kubernetes-dashboard create token admin-user; echo
+kubectl apply -f /home/vagrant/playground/kubernetes-dashboard/dash-ing.yaml
+
+echo "*************************."
+echo "==> Get token user kubernetes dashboard."
+echo "*************************."
+kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d
+echo "*************************."
+echo "[End] Install kubernetes dashboard."
