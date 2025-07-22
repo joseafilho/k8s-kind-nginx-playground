@@ -8,11 +8,11 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
 
 ## Pré-requisitos
 
-- [Docker](https://www.docker.com/)
-- [Vagrant](https://www.vagrantup.com/)
-- [Kind](https://kind.sigs.k8s.io/)
-- [kubectl](https://kubernetes.io/docs/tasks/tools/)
-- [VirtualBox](https://www.virtualbox.org/) (ou outro provider compatível com Vagrant)
+- <a href="https://www.docker.com/" target="_blank" rel="noopener">Docker</a>
+- <a href="https://www.vagrantup.com/" target="_blank" rel="noopener">Vagrant</a>
+- <a href="https://kind.sigs.k8s.io/" target="_blank" rel="noopener">Kind</a>
+- <a href="https://kubernetes.io/docs/tasks/tools/" target="_blank" rel="noopener">kubectl</a>
+- <a href="https://www.virtualbox.org/" target="_blank" rel="noopener">VirtualBox</a> (ou outro provider compatível com Vagrant)
 
 ## Estrutura do Projeto
 
@@ -97,6 +97,6 @@ WITH_GUI=1 INSTALL_BROWSER=1 SETUP_KIND_K8S=1 vagrant up
 
 ## Referências
 
-- [Kind - Kubernetes IN Docker](https://kind.sigs.k8s.io/)
-- [Ingress Nginx Controller](https://kubernetes.github.io/ingress-nginx/)
-- Projeto inspirado em: [README.md original de mascosta](https://github.com/mascosta/docs/blob/main/kind-ingress-nginx/README.md)
+- <a href="https://kind.sigs.k8s.io/" target="_blank" rel="noopener">Kind - Kubernetes IN Docker</a>
+- <a href="https://kubernetes.github.io/ingress-nginx/" target="_blank" rel="noopener">Ingress Nginx Controller</a>
+- Projeto inspirado em: <a href="https://github.com/mascosta/docs/blob/main/kind-ingress-nginx/README.md" target="_blank" rel="noopener">README.md original de mascosta</a>
