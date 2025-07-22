@@ -108,8 +108,8 @@ kubectl -n kubernetes-dashboard create token admin-user; echo
 kubectl apply -f /home/vagrant/playground/kubernetes-dashboard/dash-ing.yaml
 
 echo "*************************."
-echo "==> Get token user kubernetes dashboard."
+echo "==> Token to access kubernetes dashboard."
 echo "*************************."
-kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d
+kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d; echo
 echo "*************************."
 echo "[End] Install kubernetes dashboard."

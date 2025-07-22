@@ -67,20 +67,21 @@ WITH_GUI=1 INSTALL_BROWSER=1 SETUP_KIND_K8S=1 vagrant up
      ```sh
      SETUP_KIND_K8S=1 vagrant up
      ```
-
-3. **Acesse a máquina virtual:**
-   ```sh
-   vagrant ssh
-   ```
+     Acesso a máquina virtual via ssh:**
+     ```sh
+     vagrant ssh
+     ```
 
 ## Validação de Funcionamento
 
 - **Com interface gráfica (GUI):**
   1. Após acessar a máquina virtual via VirtualBox, abra o navegador Firefox instalado na VM.
-  2. Acesse o endereço configurado no Ingress (exemplo: http://domain.local:30001/hello-apache/ ou conforme especificado no arquivo de ingress).
+  2. Acesse o endereço: http://domain.local:30001/hello-apache/.
   3. Você deve ver a página de boas-vindas do Hello Apache App.
   4. Exemplo do resultado esperado:
      ![Exemplo Hello Apache App](./apache-hello/hello-apache-app.png)
+  5. Em outra aba acesse o endereço: https://domain.local:30002/
+     ![Kubernetes Dashboard](./kubernetes-dashboard/kube-dashboard.png)
 
 - **Somente terminal (sem GUI):**
   1. Após acessar a máquina virtual com `vagrant ssh`, utilize o comando:
