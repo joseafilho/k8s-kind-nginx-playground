@@ -80,7 +80,7 @@ WITH_GUI=1 INSTALL_BROWSER=1 SETUP_KIND_K8S=1 vagrant up
   2. Acesse o endereço configurado no Ingress (exemplo: http://domain.local:30001/hello-apache/ ou conforme especificado no arquivo de ingress).
   3. Você deve ver a página de boas-vindas do Hello Apache App.
   4. Exemplo do resultado esperado:
-     ![Exemplo Hello Apache App](hello-apache-app.png)
+     ![Exemplo Hello Apache App](./apache-hello/hello-apache-app.png)
 
 - **Somente terminal (sem GUI):**
   1. Após acessar a máquina virtual com `vagrant ssh`, utilize o comando:
