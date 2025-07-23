@@ -58,6 +58,15 @@ kubectl cluster-info
 kubectl get nodes
 echo "==> [End] Validating kubectl installation."
 
+# Install helm.
+echo "==> [Begin] Install helm."
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod +x get_helm.sh
+./get_helm.sh
+helm version
+rm get_helm.sh
+echo "==> [End] Install helm."
+
 # Install Cilium.
 echo "==> [Begin] Install Cilium."
 CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
@@ -110,6 +119,15 @@ kubectl apply -f /home/vagrant/playground/kubernetes-dashboard/dash-ing.yaml
 echo "*************************."
 echo "==> Token to access kubernetes dashboard."
 echo "*************************."
-kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d; echo
+kubectl get secret admin-user -n kubernetes-dashboard -o jsonpath={".data.token"} | base64 -d >> ./playground/dash-token; echo
+cat ./playground/dash-token; echo
 echo "*************************."
 echo "[End] Install kubernetes dashboard."
+
+# Install postgres.
+echo "[Begin] Install postgres."
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+kubectl create namespace postgresql
+helm install postgres-17 bitnami/postgresql --namespace postgresql --set image.tag=17.5.0
+echo "[End] Install postgres."
