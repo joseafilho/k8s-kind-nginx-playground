@@ -30,6 +30,9 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
 ├── bootstrap.sh                    # Script de bootstrap para provisionamento
 ├── Vagrantfile                     # Arquivo de configuração do Vagrant
 └── README.md                       # Este arquivo
+├── pgadmin/
+│   ├── README.md                   # Documentação de acesso ao pgAdmin
+│   └── pgadmin-ing.yaml            # Ingress para o pgAdmin
 ```
 
 ## Variáveis de Ambiente para Personalização da VM
