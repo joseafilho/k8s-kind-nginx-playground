@@ -84,7 +84,7 @@ echo "==> [End] Install Cilium."
 
 # Config /etc/hosts.
 echo "[Begin] Config /etc/hosts."
-sudo bash -c 'echo "127.0.0.1  domain.local" >> /etc/hosts'
+sudo bash -c 'echo "127.0.0.1 domain.local" >> /etc/hosts'
 echo "[End] Config /etc/hosts."
 
 # Create ingress controller.
@@ -124,10 +124,29 @@ cat ./playground/dash-token; echo
 echo "*************************."
 echo "[End] Install kubernetes dashboard."
 
-# Install postgres.
-echo "[Begin] Install postgres."
+# Add repository to helm.
+echo "[Begin] Add repository to helm."
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
+echo "[End] Add repository to helm."
+
+# Install postgres.
+echo "[Begin] Install postgres."
 kubectl create namespace postgresql
 helm install postgres-17 bitnami/postgresql --namespace postgresql --set image.tag=17.5.0
+
+echo "*************************."
+echo "==> Password to access postgres." 
+echo "*************************."
+kubectl get secret --namespace postgresql postgres-17-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d; echo
+echo "*************************."
 echo "[End] Install postgres."
+
+# Install pgadmin.
+echo "[Begin] Install pgadmin."
+sudo bash -c 'echo "127.0.0.1 pgadmin.local" >> /etc/hosts'
+helm repo add runix https://helm.runix.net
+helm repo update
+helm install pgadmin runix/pgadmin4 --set env.email=admin@admin.com --set env.password=admin-user --set service.type=ClusterIP --namespace postgresql
+kubectl apply -f /home/vagrant/playground/pgadmin/pgadmin-ing.yaml
+echo "[End] Install pgadmin."
