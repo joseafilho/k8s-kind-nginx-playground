@@ -150,3 +150,16 @@ helm repo update
 helm install pgadmin runix/pgadmin4 --set env.email=admin@admin.com --set env.password=admin-user --set service.type=ClusterIP --namespace postgresql
 kubectl apply -f /home/vagrant/playground/pgadmin/pgadmin-ing.yaml
 echo "[End] Install pgadmin."
+
+# Deploy ecom-python.
+echo "[Begin] Deploy ecom-python."
+sudo bash -c 'echo "127.0.0.1 ecom-python.local" >> /etc/hosts'
+docker build -t ecom-python-api:latest -f /home/vagrant/playground/projects/ecom-python/Dockerfile /home/vagrant/playground/projects/ecom-python
+kind load docker-image ecom-python-api:latest --name k8s-nginx
+export POSTGRES_PASSWORD=$(kubectl get secret --namespace postgresql postgres-17-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d)
+kubectl run postgres-17-postgresql-client --rm --tty -i --restart='Never' --namespace postgresql --image docker.io/bitnami/postgresql:17.5.0 --env="PGPASSWORD=$POSTGRES_PASSWORD" --command -- psql --host postgres-17-postgresql -U postgres -d postgres -p 5432 -c "CREATE DATABASE ecom_python;"
+kubectl apply -f /home/vagrant/playground/projects/ecom-python/infra/namespace.yaml
+envsubst < /home/vagrant/playground/projects/ecom-python/infra/deployment.yaml | kubectl apply -f - 
+kubectl apply -f /home/vagrant/playground/projects/ecom-python/infra/service.yaml
+kubectl apply -f /home/vagrant/playground/projects/ecom-python/infra/ingress.yaml
+echo "[End] Deploy ecom-python."

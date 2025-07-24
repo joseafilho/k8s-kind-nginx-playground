@@ -15,6 +15,10 @@ export POSTGRES_PASSWORD=$(kubectl get secret --namespace postgresql postgres-17
 kubectl run postgres-17-postgresql-client --rm --tty -i --restart='Never' --namespace postgresql --image docker.io/bitnami/postgresql:17.5.0 --env="PGPASSWORD=$POSTGRES_PASSWORD" \
     --command -- psql --host postgres-17-postgresql -U postgres -d postgres -p 5432
 
+## Create database.
+kubectl run postgres-17-postgresql-client --rm --tty -i --restart='Never' --namespace postgresql --image docker.io/bitnami/postgresql:17.5.0 --env="PGPASSWORD=$POSTGRES_PASSWORD" \
+    --command -- psql --host postgres-17-postgresql -U postgres -d postgres -p 5432 -c "CREATE DATABASE ecom_python;"
+
 ## To connect to your database from outside the cluster execute the following commands:
 kubectl port-forward --namespace postgresql svc/postgres-17-postgresql 5432:5432 &
 PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432

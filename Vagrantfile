@@ -46,6 +46,7 @@ Vagrant.configure("2") do |config|
     config.vm.provision "file", source: "./apache-hello", destination: "$HOME/playground/"
     config.vm.provision "file", source: "./ingress-nginx", destination: "$HOME/playground/"
     config.vm.provision "file", source: "./kubernetes-dashboard", destination: "$HOME/playground/"
+    config.vm.provision "file", source: "./projects", destination: "$HOME/playground/"
 
     # Run install tools.
     config.vm.provision :shell, path: "bootstrap.sh"
