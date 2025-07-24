@@ -4,6 +4,9 @@ Vagrant.configure("2") do |config|
   # config.vm.network "forwarded_port", guest: 30001, host: 8080, id: "k8s-http"
   # config.vm.network "forwarded_port", guest: 30002, host: 8443, id: "k8s-https"
 
+  # PS.: In script `create-enviroment-gui.sh` we set the memory and cpus to 4096 and 4.
+  # VBoxManage modifyvm $VM_NAME --memory 4096 --cpus 4
+  # The vagrantfile is not able to set the memory and cpus via the provider.
   config.vm.provider "VirtualBox" do |vb|
     vb.name = "kind-nginx"
     vb.memory = 4096
