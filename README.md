@@ -33,6 +33,20 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
 ├── pgadmin/
 │   ├── README.md                   # Documentação de acesso ao pgAdmin
 │   └── pgadmin-ing.yaml            # Ingress para o pgAdmin
+├── projects/
+│   └── ecom-python/
+│       ├── main.py                  # API FastAPI de produtos
+│       ├── requirements.txt         # Dependências Python
+│       ├── Dockerfile               # Dockerfile da API
+│       ├── README.md                # Instruções da API
+│       └── infra/
+│           ├── deployment.yaml      # Deployment do app no K8s
+│           ├── ingress.yaml         # Ingress do app
+│           ├── namespace.yaml       # Namespace ecom-python
+│           └── service.yaml         # Service do app
+├── roadmap/                         # Diretório para roadmap do projeto
+├── command-utils/
+│   └── debug.sh                     # Script utilitário
 ```
 
 ## Variáveis de Ambiente para Personalização da VM
