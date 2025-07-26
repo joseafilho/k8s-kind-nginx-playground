@@ -26,3 +26,15 @@ PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p
 ## Reinstall postgres.
 kubectl delete pvc data-postgres-17-postgresql-0 -n postgresql
 helm install postgres-17 bitnami/postgresql --namespace postgresql --set image.tag=17.5.0
+
+# Harbor.
+## Connect to harbor database.
+kubectl run harbor-postgres-client --rm --tty -i --restart='Never' --namespace harbor --image docker.io/bitnami/postgresql:17.5.0 --env="PGPASSWORD=changeit" \
+    --command -- psql --host harbor-database -U postgres -d postgres -p 5432
+
+## Uninstall harbor.
+helm uninstall harbor -n harbor
+
+## Delete pvc.
+kubectl delete pvc --all -n harbor
+

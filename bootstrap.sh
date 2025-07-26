@@ -124,11 +124,19 @@ cat ./playground/dash-token; echo
 echo "*************************."
 echo "[End] Install kubernetes dashboard."
 
-# Add repository to helm.
-echo "[Begin] Add repository to helm."
+# Add repositories to helm.
+echo "[Begin] Add repositories to helm."
 helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add runix https://helm.runix.net
+helm repo add harbor https://helm.goharbor.io
 helm repo update
-echo "[End] Add repository to helm."
+echo "[End] Add repositories to helm."
+
+# Install harbor.
+echo "[Begin] Install harbor."
+sudo bash -c 'echo "127.0.0.1 core.harbor.domain" >> /etc/hosts'
+helm install harbor harbor/harbor --namespace harbor --set expose.ingress.className=nginx # --set harborAdminPassword='#YourPassword'
+echo "[End] Install harbor."
 
 # Install postgres.
 echo "[Begin] Install postgres."
@@ -145,8 +153,6 @@ echo "[End] Install postgres."
 # Install pgadmin.
 echo "[Begin] Install pgadmin."
 sudo bash -c 'echo "127.0.0.1 pgadmin.local" >> /etc/hosts'
-helm repo add runix https://helm.runix.net
-helm repo update
 helm install pgadmin runix/pgadmin4 --set env.email=admin@admin.com --set env.password=admin-user --set service.type=ClusterIP --namespace postgresql
 kubectl apply -f /home/vagrant/playground/pgadmin/pgadmin-ing.yaml
 echo "[End] Install pgadmin."
