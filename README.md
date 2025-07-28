@@ -21,15 +21,16 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
 │   ├── hello-apache-dpl.yaml       # Deployment do Apache
 │   ├── hello-apache-ing.yaml       # Ingress para expor o serviço Apache
 │   └── hello-apache-svc.yaml       # Service para o Apache
+├── harbor/
+│   ├── values.yaml                  # Configuração Helm do Harbor sem HTTPS
+│   ├── docker-daemon-config.md      # Instruções para configurar Docker daemon
+│   └── README.md                    # Documentação de acesso ao Harbor
 ├── ingress-nginx/
 │   └── ingress.yaml                # Configuração do Ingress Nginx
 ├── kubernetes-dashboard/
 │   ├── kube-dashboard.png          # Exemplo visual do Dashboard
 │   ├── dash-ing.yaml               # Ingress para o Dashboard
 │   └── dash-admin.yaml             # ServiceAccount e permissões para o Dashboard
-├── bootstrap.sh                    # Script de bootstrap para provisionamento
-├── Vagrantfile                     # Arquivo de configuração do Vagrant
-└── README.md                       # Este arquivo
 ├── pgadmin/
 │   ├── README.md                   # Documentação de acesso ao pgAdmin
 │   └── pgadmin-ing.yaml            # Ingress para o pgAdmin
@@ -44,9 +45,12 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
 │           ├── ingress.yaml         # Ingress do app
 │           ├── namespace.yaml       # Namespace ecom-python
 │           └── service.yaml         # Service do app
+├── bootstrap.sh                    # Script de bootstrap para provisionamento
+├── Vagrantfile                     # Arquivo de configuração do Vagrant
+├── README.md                       # Este arquivo
 ├── roadmap/                         # Diretório para roadmap do projeto
-├── command-utils/
-│   └── debug.sh                     # Script utilitário
+└── command-utils/
+    └── debug.sh                     # Script utilitário
 ```
 
 ## Variáveis de Ambiente para Personalização da VM

@@ -31,7 +31,33 @@ Após o primeiro login:
 2. **Configure o projeto:** Defina nome, visibilidade (public/private) e descrição
 3. **Configure usuários (opcional):** Vá em "Administration" → "Users" para adicionar novos usuários
 
-## 5. Referências
+## 5. Operações Docker
+
+### Exemplos Simples
+
+#### Login no Harbor
+```bash
+docker login core.harbor.domain:30001
+# Usuário: admin
+# Senha: Harbor12345
+```
+
+#### Fazer push de uma imagem para o Harbor
+```bash
+# Fazer tag da sua imagem
+docker tag hello-world:latest core.harbor.domain:30001/library/hello-world:latest
+
+# Fazer push para o Harbor
+docker push core.harbor.domain:30001/library/hello-world:latest
+```
+
+#### Fazer pull de uma imagem do Harbor
+```bash
+# Fazer pull do Harbor
+docker pull core.harbor.domain:30001/library/hello-world:latest
+```
+
+## 6. Referências
 
 - [Documentação oficial do Harbor](https://goharbor.io/docs/)
 - [Helm Chart Harbor](https://artifacthub.io/packages/helm/harbor/harbor) 
