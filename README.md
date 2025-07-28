@@ -4,7 +4,16 @@ K8S Playground usando Kind com Ingress Nginx.
 
 ## Descrição
 
-Este projeto tem como objetivo fornecer um ambiente de testes local para Kubernetes utilizando o Kind (Kubernetes IN Docker) e o Ingress Nginx. Ele inclui exemplos de deployment, service, configmap e ingress para uma aplicação simples em Apache.
+Este projeto fornece um ambiente completo de desenvolvimento e testes para Kubernetes utilizando o Kind (Kubernetes IN Docker) e o Ingress Nginx. Inclui:
+
+- **Container Registry**: Harbor para gerenciamento de imagens Docker
+- **Banco de Dados**: PostgreSQL com interface pgAdmin
+- **Aplicação de Exemplo**: API FastAPI em Python conectando ao PostgreSQL
+- **Dashboard**: Kubernetes Dashboard para monitoramento
+- **Aplicação Web**: Hello Apache App para demonstração
+- **Automação**: Scripts de provisionamento e configuração
+
+O ambiente é ideal para desenvolvedores que precisam de um playground completo para testar aplicações Kubernetes, incluindo registry de containers, banco de dados e aplicações de exemplo.
 
 ## Pré-requisitos
 
@@ -100,27 +109,45 @@ Este projeto tem como objetivo fornecer um ambiente de testes local para Kuberne
   1. Após acessar a máquina virtual via VirtualBox, abra o navegador Firefox instalado na VM.
      - Usuário padrão da VM: **vagrant**
      - Senha padrão da VM: **vagrant**
-  2. Acesse o endereço: http://domain.local:30001/hello-apache/.
-  3. Você deve ver a página de boas-vindas do Hello Apache App.
-  4. Exemplo do resultado esperado:
-     ![Exemplo Hello Apache App](./apache-hello/hello-apache-app.png)
-  5. Em outra aba acesse o endereço: https://domain.local:30002/
-     - O token de acesso a dashboard se encontra nos logs quando o ambiente está subindo e também no path: **/home/vagrant/playground/dash-token** dentro da VM.
-  6. Você deve ver a página do Kubernetes Dashboard.
-     ![Kubernetes Dashboard](./kubernetes-dashboard/kube-dashboard.png)
+  2. **Hello Apache App**: Acesse http://domain.local:30001/hello-apache/
+     - Você deve ver a página de boas-vindas do Hello Apache App
+     - ![Exemplo Hello Apache App](./apache-hello/hello-apache-app.png)
+  3. **Kubernetes Dashboard**: Acesse https://domain.local:30002/
+     - Token de acesso: `/home/vagrant/playground/dash-token` na VM
+     - ![Kubernetes Dashboard](./kubernetes-dashboard/kube-dashboard.png)
+  4. **Harbor Container Registry**: Acesse http://core.harbor.domain:30001/
+     - Usuário: `admin`, Senha: `Harbor12345`
+  5. **pgAdmin**: Acesse http://pgadmin.local:30001/
+     - Email: `admin@admin.com`, Senha: `admin-user`
+  6. **API FastAPI**: Acesse http://ecom-python.local:30001/
+     - API de produtos conectando ao PostgreSQL
 
 - **Somente terminal (sem GUI):**
-  1. Após acessar a máquina virtual com `vagrant ssh`, utilize o comando:
+  1. Acesse a VM com `vagrant ssh`
+  2. **Teste Hello Apache App**:
      ```sh
      curl -v http://domain.local:30001/hello-apache/
      ```
-  2. O retorno deve conter o conteúdo HTML da página de boas-vindas do Hello Apache App.
+  3. **Teste Harbor Registry**:
+     ```sh
+     docker login core.harbor.domain:30001
+     docker pull hello-world
+     docker tag hello-world core.harbor.domain:30001/library/hello-world:latest
+     docker push core.harbor.domain:30001/library/hello-world:latest
+     ```
+  4. **Teste API FastAPI**:
+     ```sh
+     curl http://ecom-python.local:30001/products
+     ```
 
 ## Observações
 
 - Certifique-se de que as portas necessárias estejam liberadas no seu ambiente.
 - O Ingress Nginx será exposto conforme definido no arquivo `ingress-nginx/ingress.yaml`.
-- Para acessar a aplicação, utilize o endereço configurado no Ingress após a criação dos recursos.
+- **Harbor Registry**: Configure o Docker daemon para usar Harbor como registry inseguro (veja `harbor/README.md`).
+- **PostgreSQL**: O banco de dados é persistente e mantém os dados entre reinicializações.
+- **API FastAPI**: A aplicação de exemplo demonstra conexão com PostgreSQL e deploy no Kubernetes.
+- Para acessar as aplicações, utilize os endereços configurados no Ingress após a criação dos recursos.
 
 ## Referências
 
