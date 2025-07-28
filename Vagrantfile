@@ -9,7 +9,7 @@ Vagrant.configure("2") do |config|
   # The vagrantfile is not able to set the memory and cpus via the provider.
   config.vm.provider "VirtualBox" do |vb|
     vb.name = "kind-nginx"
-    vb.memory = 4096
+    vb.memory = 6144
     vb.cpus = 4
   end
 
@@ -50,6 +50,7 @@ Vagrant.configure("2") do |config|
     config.vm.provision "file", source: "./ingress-nginx", destination: "$HOME/playground/"
     config.vm.provision "file", source: "./kubernetes-dashboard", destination: "$HOME/playground/"
     config.vm.provision "file", source: "./projects", destination: "$HOME/playground/"
+    config.vm.provision "file", source: "./harbor", destination: "$HOME/playground/"
 
     # Run install tools.
     config.vm.provision :shell, path: "bootstrap.sh"

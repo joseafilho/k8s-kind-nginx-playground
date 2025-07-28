@@ -3,6 +3,24 @@ echo "[Begin] Bootstrap script."
 sudo apt update && \
 sudo apt install -y apt-transport-https
 
+# Configure docker to use insecure registry.
+echo "[Begin] Configure docker to use insecure registry."
+sudo cat > /etc/docker/daemon.json << 'EOF'
+{
+  "insecure-registries": [
+    "core.harbor.domain:30001",
+    "notary.harbor.domain:30001",
+    "harbor-core.harbor.svc.cluster.local"
+  ]
+}
+EOF
+
+# Set permissions and restart docker.
+sudo chmod 644 /etc/docker/daemon.json
+sudo systemctl restart docker
+docker info | grep -A 10 "Insecure Registries"
+echo "[End] Configure docker to use insecure registry."
+
 # Install kind.
 echo "==> [Begin] Installing kind."
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-amd64
@@ -129,14 +147,38 @@ echo "[Begin] Add repositories to helm."
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo add runix https://helm.runix.net
 helm repo add harbor https://helm.goharbor.io
+# helm repo add sonatype https://sonatype.github.io/helm3-charts/
 helm repo update
 echo "[End] Add repositories to helm."
 
 # Install harbor.
 echo "[Begin] Install harbor."
 sudo bash -c 'echo "127.0.0.1 core.harbor.domain" >> /etc/hosts'
-helm install harbor harbor/harbor --namespace harbor --set expose.ingress.className=nginx # --set harborAdminPassword='#YourPassword'
-echo "[End] Install harbor."
+sudo bash -c 'echo "127.0.0.1 notary.harbor.domain" >> /etc/hosts'
+kubectl create namespace harbor
+helm install harbor harbor/harbor --namespace harbor --values /home/vagrant/playground/harbor/values.yaml
+ echo "[End] Install harbor."
+
+# TODO: Install nexus.
+# echo "[Begin] Install nexus."
+# kubectl create namespace nexus
+# helm install nexus sonatype/nxrm-ha --namespace nexus \
+#     --set nexus.ingress.enabled=true \
+#     --set nexus.ingress.className=nginx \
+#     --set nexus.env[0].name=INSTALL4J_ADD_VM_PARAMS \
+#     --set nexus.env[0].value="-Xms512m -Xmx1024m" \
+#     --set nexus.resources.requests.memory=512Mi \
+#     --set nexus.resources.requests.cpu=250m \
+#     --set nexus.resources.limits.memory=1Gi \
+#     --set nexus.resources.limits.cpu=500m \
+#     --set persistence.size=5Gi
+# echo "[End] Install nexus."
+
+# Install quay.
+# echo "[Begin] Install quay."
+# kubectl create namespace quay
+# helm install quay redhat-cop/quay --namespace quay
+# echo "[End] Install quay."
 
 # Install postgres.
 echo "[Begin] Install postgres."
