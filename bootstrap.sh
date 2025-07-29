@@ -3,78 +3,11 @@ echo "[Begin] Bootstrap script."
 sudo apt update && \
 sudo apt install -y apt-transport-https
 
-# Configure docker to use insecure registry.
-echo "[Begin] Configure docker to use insecure registry."
-sudo cat > /etc/docker/daemon.json << 'EOF'
-{
-  "insecure-registries": [
-    "core.harbor.domain:30001",
-    "notary.harbor.domain:30001",
-    "harbor-core.harbor.svc.cluster.local"
-  ]
-}
-EOF
-
-# Set permissions and restart docker.
-sudo chmod 644 /etc/docker/daemon.json
-sudo systemctl restart docker
-docker info | grep -A 10 "Insecure Registries"
-echo "[End] Configure docker to use insecure registry."
-
-# Install kind.
-echo "==> [Begin] Installing kind."
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-amd64
-chmod +x ./kind
-sudo mv ./kind /usr/local/bin/kind
-kind --version
-echo "==> [End] Installing kind."
-
-# Create kind configuration file.
-cat > kind-config.yaml <<EOF
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-name: cluster1
-nodes:
-- role: control-plane
-  extraPortMappings: # Ports to be exposed from the cluster
-  - containerPort: 30001
-    hostPort: 30001
-  - containerPort: 30002
-    hostPort: 30002
-- role: worker
-- role: worker
-networking:
-  disableDefaultCNI: true # Disable the default CNI plugin
-  podSubnet: "10.244.0.0/16"
-  serviceSubnet: "10.245.0.0/16"
-EOF
-sudo chown vagrant:vagrant kind-config.yaml
-
-# Create cluster.
-echo "==> [Begin] Create cluster."
-kind create cluster --name k8s-nginx --config kind-config.yaml
-echo "==> [End] Create cluster."
-
-# Install kubectl.
-echo "==> [Begin] Installing kubectl."
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl
-sudo mv ./kubectl /usr/local/bin/kubectl
-kubectl version
-echo "==> [End] Installing kubectl."
-
-# Configure kubectl to use kind cluster.
-echo "[Begin] Configuring kubectl to use kind cluster."
-mkdir .kube/
-sudo chown -R vagrant:vagrant .kube/
-kind get kubeconfig --name k8s-nginx > .kube/config
-echo "[End] Configuring kubectl to use kind cluster."
-
-# Validating kubectl installation.
-echo "==> [Begin] Validating kubectl installation."
-kubectl cluster-info
-kubectl get nodes
-echo "==> [End] Validating kubectl installation."
+pushd ./playground/installers 
+./configure-docker-daemon.sh
+./install-kind.sh
+./install-kubectl.sh
+popd
 
 # Install helm.
 echo "==> [Begin] Install helm."

@@ -59,11 +59,18 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
 │           ├── namespace.yaml       # Namespace ecom-python
 │           └── service.yaml         # Service do app
 ├── bootstrap.sh                    # Script de bootstrap para provisionamento
+├── create-environment.sh           # Script unificado para criar ambiente (GUI/No-GUI)
+├── create-environment-without-gui.sh # Script para criar ambiente sem GUI com parâmetros
 ├── Vagrantfile                     # Arquivo de configuração do Vagrant
 ├── README.md                       # Este arquivo
 ├── roadmap/                         # Diretório para roadmap do projeto
 ├── command-utils/
 │   └── debug.sh                     # Script utilitário
+├── installers/
+│   ├── configure-docker-daemon.sh   # Script para configurar Docker daemon
+│   ├── install-kind.sh              # Script para instalar Kind e criar cluster
+│   ├── install-kubectl.sh           # Script para instalar kubectl e configurar cluster
+│   └── configure-home-dir.sh        # Script para configurar diretório home no bootstrap
 └── observability/
     ├── README.md                    # Documentação da stack de observabilidade
     ├── install-observability.sh     # Script de instalação da stack
@@ -91,12 +98,16 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
 
 2. **Suba o ambiente com Vagrant:**
 
-   - **Com interface gráfica(Rodando somente um comando):**
+   - **Script Unificado (Recomendado):**
      ```sh
-     ./create-enviroment-gui.sh
+     # Com GUI
+     ./create-environment.sh --gui --memory 8192 --cpus 4 --home-dir /home/vagrant
+     
+     # Sem GUI
+     ./create-environment.sh --no-gui --memory 4096 --cpus 2 --home-dir /home/user
      ```
    
-   - **Com interface gráfica:**
+   - **Com interface gráfica (método manual):**
      ```sh
      WITH_GUI=1 INSTALL_BROWSER=1 vagrant up
      ```
@@ -105,10 +116,14 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
      SETUP_KIND_K8S=1 vagrant reload --provision
      ```
    
-   - **Somente terminal (sem GUI):**
+   - **Somente terminal (método manual):**
      ```sh
      SETUP_KIND_K8S=1 vagrant up
      ```
+     - **Com recursos personalizados:**
+       ```sh
+       ./create-environment-without-gui.sh --memory 8192 --cpus 4
+       ```
      Acesso a máquina virtual via ssh:
      ```sh
      vagrant ssh
