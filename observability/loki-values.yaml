@@ -1,0 +1,38 @@
+# Loki Values
+# Log Aggregation
+
+# Loki Configuration
+loki:
+  auth_enabled: false
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClassName: standard
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 200m
+
+# Ingress
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - loki.local
+  path: /
+  pathType: Prefix
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+# Service
+service:
+  type: ClusterIP
+
+# Retention
+retention:
+  days: 7

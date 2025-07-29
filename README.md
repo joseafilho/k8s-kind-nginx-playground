@@ -58,8 +58,15 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
 ├── Vagrantfile                     # Arquivo de configuração do Vagrant
 ├── README.md                       # Este arquivo
 ├── roadmap/                         # Diretório para roadmap do projeto
-└── command-utils/
-    └── debug.sh                     # Script utilitário
+├── command-utils/
+│   └── debug.sh                     # Script utilitário
+└── observability/
+    ├── README.md                    # Documentação da stack de observabilidade
+    ├── install-observability.sh     # Script de instalação da stack
+    ├── prometheus-values.yaml       # Configuração do Prometheus Stack
+    ├── jaeger-values.yaml           # Configuração do Jaeger
+    ├── loki-values.yaml             # Configuração do Loki
+    └── alerts.yaml                  # Configuração de alertas
 ```
 
 ## Variáveis de Ambiente para Personalização da VM
@@ -121,6 +128,12 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
      - Email: `admin@admin.com`, Senha: `admin-user`
   6. **API FastAPI**: Acesse http://ecom-python.local:30001/
      - API de produtos conectando ao PostgreSQL
+  7. **Grafana**: Acesse http://grafana.local:30001/
+     - Usuário: `admin`, Senha: `prom-operator`
+  8. **Jaeger**: Acesse http://jaeger.local:30001/
+     - Distributed tracing
+  9. **Loki**: Acesse http://loki.local:30001/
+     - Log aggregation
 
 - **Somente terminal (sem GUI):**
   1. Acesse a VM com `vagrant ssh`
@@ -138,6 +151,17 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
   4. **Teste API FastAPI**:
      ```sh
      curl http://ecom-python.local:30001/products
+     ```
+  5. **Teste Stack de Observabilidade**:
+     ```sh
+     # Instalar stack de observabilidade
+     cd observability
+     ./install-observability.sh
+     
+     # Verificar status
+     kubectl get pods -n monitoring
+     kubectl get pods -n jaeger
+     kubectl get pods -n logging
      ```
 
 ## Observações

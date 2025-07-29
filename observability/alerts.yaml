@@ -1,0 +1,124 @@
+# Prometheus Alerts Configuration
+# Alertas para monitoramento do cluster Kubernetes
+
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: PrometheusRule
+metadata:
+  name: k8s-alerts
+  namespace: monitoring
+  labels:
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: kubernetes.rules
+    rules:
+    # High CPU Usage
+    - alert: HighCPUUsage
+      expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage on {{ $labels.instance }}"
+        description: "CPU usage is above 80% for more than 5 minutes"
+
+    # High Memory Usage
+    - alert: HighMemoryUsage
+      expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage on {{ $labels.instance }}"
+        description: "Memory usage is above 80% for more than 5 minutes"
+
+    # Pod Restarts
+    - alert: PodRestarts
+      expr: increase(kube_pod_container_status_restarts_total[15m]) > 0
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Pod {{ $labels.pod }} is restarting"
+        description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes"
+
+    # Node Down
+    - alert: NodeDown
+      expr: up == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Node {{ $labels.instance }} is down"
+        description: "Node {{ $labels.instance }} has been down for more than 1 minute"
+
+    # Disk Space
+    - alert: DiskSpace
+      expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Disk space is running low on {{ $labels.instance }}"
+        description: "Disk usage is above 85% for more than 5 minutes"
+
+    # High Pod Count
+    - alert: HighPodCount
+      expr: count(kube_pod_info) > 100
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High number of pods in cluster"
+        description: "Cluster has more than 100 pods"
+
+    # Service Down
+    - alert: ServiceDown
+      expr: up{job="kubernetes-service-endpoints"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Service {{ $labels.service }} is down"
+        description: "Service {{ $labels.service }} has been down for more than 1 minute"
+
+    # API Server Down
+    - alert: APIServerDown
+      expr: up{job="kubernetes-apiservers"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes API server is down"
+        description: "API server has been down for more than 1 minute"
+
+    # Etcd Down
+    - alert: EtcdDown
+      expr: up{job="kubernetes-apiservers",endpoint="https"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Etcd is down"
+        description: "Etcd has been down for more than 1 minute"
+
+    # Scheduler Down
+    - alert: SchedulerDown
+      expr: up{job="kube-scheduler"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes scheduler is down"
+        description: "Scheduler has been down for more than 1 minute"
+
+    # Controller Manager Down
+    - alert: ControllerManagerDown
+      expr: up{job="kube-controller-manager"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kubernetes controller manager is down"
+        description: "Controller manager has been down for more than 1 minute" 

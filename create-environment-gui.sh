@@ -7,5 +7,5 @@ sleep 2
 vagrant halt
 sleep 2
 VM_NAME=$(VBoxManage list vms | grep "kind-nginx" | awk -F\" '{print $2}')
-VBoxManage modifyvm $VM_NAME --memory 6144 --cpus 4
+VBoxManage modifyvm $VM_NAME --memory 12288 --cpus 6
 SETUP_KIND_K8S=1 vagrant reload --provision

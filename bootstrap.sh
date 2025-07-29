@@ -151,7 +151,14 @@ helm repo add harbor https://helm.goharbor.io
 helm repo update
 echo "[End] Add repositories to helm."
 
-# Install harbor.
+# Install stack observability.
+echo "[Begin] Install stack observability."
+pushd ./playground/observability
+./install-observability.sh
+popd
+echo "[End] Install stack observability."
+
+Install harbor.
 echo "[Begin] Install harbor."
 sudo bash -c 'echo "127.0.0.1 core.harbor.domain" >> /etc/hosts'
 sudo bash -c 'echo "127.0.0.1 notary.harbor.domain" >> /etc/hosts'
@@ -186,7 +193,7 @@ kubectl create namespace postgresql
 helm install postgres-17 bitnami/postgresql --namespace postgresql --set image.tag=17.5.0
 
 echo "*************************."
-echo "==> Password to access postgres." 
+echo "==> Password to access postgres."
 echo "*************************."
 kubectl get secret --namespace postgresql postgres-17-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d; echo
 echo "*************************."
@@ -207,7 +214,7 @@ kind load docker-image ecom-python-api:latest --name k8s-nginx
 export POSTGRES_PASSWORD=$(kubectl get secret --namespace postgresql postgres-17-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d)
 kubectl run postgres-17-postgresql-client --rm --tty -i --restart='Never' --namespace postgresql --image docker.io/bitnami/postgresql:17.5.0 --env="PGPASSWORD=$POSTGRES_PASSWORD" --command -- psql --host postgres-17-postgresql -U postgres -d postgres -p 5432 -c "CREATE DATABASE ecom_python;"
 kubectl apply -f /home/vagrant/playground/projects/ecom-python/infra/namespace.yaml
-envsubst < /home/vagrant/playground/projects/ecom-python/infra/deployment.yaml | kubectl apply -f - 
+envsubst < /home/vagrant/playground/projects/ecom-python/infra/deployment.yaml | kubectl apply -f -
 kubectl apply -f /home/vagrant/playground/projects/ecom-python/infra/service.yaml
 kubectl apply -f /home/vagrant/playground/projects/ecom-python/infra/ingress.yaml
 echo "[End] Deploy ecom-python."
