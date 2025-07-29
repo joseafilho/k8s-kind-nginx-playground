@@ -1,19 +1,23 @@
 # k8s-kind-nginx-playground
 
-K8S Playground usando Kind com Ingress Nginx.
+K8S Playground.
 
 ## Descrição
 
-Este projeto fornece um ambiente completo de desenvolvimento e testes para Kubernetes utilizando o Kind (Kubernetes IN Docker) e o Ingress Nginx. Inclui:
+Este projeto fornece um ambiente completo de desenvolvimento e testes para Kubernetes:
 
+- **Vagrant**: Provisionamento da VM
+- **Kind**: Kubernetes IN Docker
+- **Ingress**: Nginx
 - **Container Registry**: Harbor para gerenciamento de imagens Docker
 - **Banco de Dados**: PostgreSQL com interface pgAdmin
 - **Aplicação de Exemplo**: API FastAPI em Python conectando ao PostgreSQL
 - **Dashboard**: Kubernetes Dashboard para monitoramento
 - **Aplicação Web**: Hello Apache App para demonstração
+- **Stack de Observabilidade**: Prometheus + Grafana + Jaeger para monitoramento completo
 - **Automação**: Scripts de provisionamento e configuração
 
-O ambiente é ideal para desenvolvedores que precisam de um playground completo para testar aplicações Kubernetes, incluindo registry de containers, banco de dados e aplicações de exemplo.
+O ambiente é ideal para desenvolvedores que precisam de um playground completo para testar aplicações Kubernetes, incluindo registry de containers, banco de dados, aplicações de exemplo e monitoramento avançado com métricas, logs e traces distribuídos.
 
 ## Pré-requisitos
 
@@ -86,6 +90,11 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
    ```
 
 2. **Suba o ambiente com Vagrant:**
+
+   - **Com interface gráfica(Rodando somente um comando):**
+     ```sh
+     ./create-enviroment-gui.sh
+     ```
    
    - **Com interface gráfica:**
      ```sh
@@ -104,11 +113,6 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
      ```sh
      vagrant ssh
      ```
-   
-   - *Com interface gráfica(Rodando somente um comando) - Em Teste:*
-     ```sh
-     ./create-enviroment-gui.sh
-     ```
 
 ## Validação de Funcionamento
 
@@ -122,18 +126,6 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
   3. **Kubernetes Dashboard**: Acesse https://domain.local:30002/
      - Token de acesso: `/home/vagrant/playground/dash-token` na VM
      - ![Kubernetes Dashboard](./kubernetes-dashboard/kube-dashboard.png)
-  4. **Harbor Container Registry**: Acesse http://core.harbor.domain:30001/
-     - Usuário: `admin`, Senha: `Harbor12345`
-  5. **pgAdmin**: Acesse http://pgadmin.local:30001/
-     - Email: `admin@admin.com`, Senha: `admin-user`
-  6. **API FastAPI**: Acesse http://ecom-python.local:30001/
-     - API de produtos conectando ao PostgreSQL
-  7. **Grafana**: Acesse http://grafana.local:30001/
-     - Usuário: `admin`, Senha: `prom-operator`
-  8. **Jaeger**: Acesse http://jaeger.local:30001/
-     - Distributed tracing
-  9. **Loki**: Acesse http://loki.local:30001/
-     - Log aggregation
 
 - **Somente terminal (sem GUI):**
   1. Acesse a VM com `vagrant ssh`
@@ -141,40 +133,13 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
      ```sh
      curl -v http://domain.local:30001/hello-apache/
      ```
-  3. **Teste Harbor Registry**:
-     ```sh
-     docker login core.harbor.domain:30001
-     docker pull hello-world
-     docker tag hello-world core.harbor.domain:30001/library/hello-world:latest
-     docker push core.harbor.domain:30001/library/hello-world:latest
-     ```
-  4. **Teste API FastAPI**:
-     ```sh
-     curl http://ecom-python.local:30001/products
-     ```
-  5. **Teste Stack de Observabilidade**:
-     ```sh
-     # Instalar stack de observabilidade
-     cd observability
-     ./install-observability.sh
      
-     # Verificar status
-     kubectl get pods -n monitoring
-     kubectl get pods -n jaeger
-     kubectl get pods -n logging
-     ```
-
-## Observações
-
-- Certifique-se de que as portas necessárias estejam liberadas no seu ambiente.
-- O Ingress Nginx será exposto conforme definido no arquivo `ingress-nginx/ingress.yaml`.
-- **Harbor Registry**: Configure o Docker daemon para usar Harbor como registry inseguro (veja `harbor/README.md`).
-- **PostgreSQL**: O banco de dados é persistente e mantém os dados entre reinicializações.
-- **API FastAPI**: A aplicação de exemplo demonstra conexão com PostgreSQL e deploy no Kubernetes.
-- Para acessar as aplicações, utilize os endereços configurados no Ingress após a criação dos recursos.
-
 ## Referências
 
 - [Kind - Kubernetes IN Docker](https://kind.sigs.k8s.io/)
 - [Ingress Nginx Controller](https://kubernetes.github.io/ingress-nginx/)
+- [Vagrant](https://www.vagrantup.com/)
+- [Prometheus](https://prometheus.io/)
+- [Grafana](https://grafana.com/)
+- [Jaeger](https://www.jaegertracing.io/)
 - Projeto inspirado em: [README.md original de mascosta](https://github.com/mascosta/docs/blob/main/kind-ingress-nginx/README.md)
