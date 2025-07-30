@@ -98,13 +98,13 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
 
 2. **Suba o ambiente com Vagrant:**
 
-   - **Script Unificado (Recomendado):**
+   - **Script Unificado:**
      ```sh
      # Com GUI
-     ./create-environment.sh --gui --memory 8192 --cpus 4 --home-dir /home/vagrant
+     ./create-environment.sh --gui --memory 8192 --cpus 4
      
      # Sem GUI
-     ./create-environment.sh --no-gui --memory 4096 --cpus 2 --home-dir /home/user
+     ./create-environment.sh --no-gui --memory 4096 --cpus 2
      ```
 
      Acesso a máquina virtual via ssh:
