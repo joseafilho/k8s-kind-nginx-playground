@@ -70,7 +70,15 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
 │   ├── configure-docker-daemon.sh   # Script para configurar Docker daemon
 │   ├── install-kind.sh              # Script para instalar Kind e criar cluster
 │   ├── install-kubectl.sh           # Script para instalar kubectl e configurar cluster
-│   └── configure-home-dir.sh        # Script para configurar diretório home no bootstrap
+│   ├── install-helm.sh              # Script para instalar Helm
+│   ├── install-cilium.sh            # Script para instalar Cilium
+│   ├── configure-hosts.sh           # Script para configurar /etc/hosts
+│   ├── apache-hello-install.sh      # Script para instalar Apache Hello App
+│   ├── installer.py                 # Script Python especialista em executar shell scripts
+│   ├── installer-config.yaml        # Configuração YAML para o installer.py
+│   ├── installer-README.md          # Documentação do installer.py
+│   ├── requirements.txt             # Dependências Python completas para installer.py
+│   └── requirements-minimal.txt     # Dependências Python mínimas para installer.py
 └── observability/
     ├── README.md                    # Documentação da stack de observabilidade
     ├── install-observability.sh     # Script de instalação da stack
@@ -79,14 +87,6 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
     ├── loki-values.yaml             # Configuração do Loki
     └── alerts.yaml                  # Configuração de alertas
 ```
-
-## Variáveis de Ambiente para Personalização da VM
-
-| Variável             | Valor Esperado | Efeito                                                                 |
-|----------------------|:--------------:|------------------------------------------------------------------------|
-| WITH_GUI             | "1" ou vazio   | Se "1", instala interface gráfica (Xubuntu Core + LightDM) na VM.      |
-| INSTALL_BROWSER      | "1" ou vazio   | Se "1", instala o navegador Firefox na VM.                             |
-| SETUP_KIND_K8S       | "1" ou vazio   | Se "1", copia os arquivos do projeto e executa o script bootstrap.sh.  |
 
 ## Como usar
 
@@ -106,24 +106,7 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
      # Sem GUI
      ./create-environment.sh --no-gui --memory 4096 --cpus 2 --home-dir /home/user
      ```
-   
-   - **Com interface gráfica (método manual):**
-     ```sh
-     WITH_GUI=1 INSTALL_BROWSER=1 vagrant up
-     ```
-     Ao final da instalação, execute:
-     ```sh
-     SETUP_KIND_K8S=1 vagrant reload --provision
-     ```
-   
-   - **Somente terminal (método manual):**
-     ```sh
-     SETUP_KIND_K8S=1 vagrant up
-     ```
-     - **Com recursos personalizados:**
-       ```sh
-       ./create-environment-without-gui.sh --memory 8192 --cpus 4
-       ```
+
      Acesso a máquina virtual via ssh:
      ```sh
      vagrant ssh
