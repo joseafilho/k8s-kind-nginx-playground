@@ -9,7 +9,7 @@ set -e
 INSTANCE_TYPE="t3a.medium"
 REGION="us-east-1"
 KEY_NAME=""
-VOLUME_SIZE=50
+VOLUME_SIZE=8
 SUBNET_ID=""
 SECURITY_GROUP_ID=""
 AMI_ID=""
@@ -22,7 +22,7 @@ show_usage() {
     echo "  --instance-type TYPE    AWS instance type (default: t3a.medium)"
     echo "  --region REGION         AWS region (default: us-east-1)"
     echo "  --key-name KEY          AWS key pair name (required)"
-    echo "  --volume-size GB        EBS volume size in GB (default: 50)"
+    echo "  --volume-size GB        EBS volume size in GB (default: 8)"
     echo "  --ami-id AMI            AWS AMI ID (optional, uses data source if not specified)"
     echo "  --subnet-id SUBNET      AWS subnet ID (optional)"
     echo "  --security-group SG     AWS security group ID (optional)"
@@ -484,8 +484,8 @@ variable "volume_size" {
   default     = ${VOLUME_SIZE}
   
   validation {
-    condition     = var.volume_size >= 20 && var.volume_size <= 1000
-    error_message = "Volume size must be between 20 and 1000 GB."
+    condition     = var.volume_size >= 8 && var.volume_size <= 1000
+    error_message = "Volume size must be between 8 and 1000 GB."
   }
 }
 
