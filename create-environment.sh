@@ -96,11 +96,11 @@ create_terraform_config() {
     cd terraform
     
     # Build command with all parameters
-    GENERATE_CMD="./generate-config.sh \
+    GENERATE_CMD="./create-terraform.sh \
         --instance-type \"$AWS_INSTANCE_TYPE\" \
         --region \"$AWS_REGION\" \
         --key-name \"$AWS_KEY_NAME\" \
-        --volume-size 50"
+        --volume-size 8"
     
     if [ -n "$AWS_AMI_ID" ]; then
         GENERATE_CMD="$GENERATE_CMD --ami-id \"$AWS_AMI_ID\""
