@@ -75,14 +75,7 @@ validate_aws_prerequisites() {
         echo "   https://developer.hashicorp.com/terraform/downloads"
         exit 1
     fi
-    
-    # Check AWS credentials
-    if ! aws sts get-caller-identity &> /dev/null; then
-        echo "❌ AWS credentials not configured. Please run:"
-        echo "   aws configure"
-        exit 1
-    fi
-    
+        
     # Check if key name is provided
     if [ -z "$AWS_KEY_NAME" ]; then
         echo "❌ AWS key name is required. Use --key-name option."

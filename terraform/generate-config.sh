@@ -34,6 +34,108 @@ show_usage() {
     echo "  $0 --instance-type t3a.medium --ami-id ami-12345 --key-name my-key"
 }
 
+# Function to validate AWS profile
+validate_aws_profile() {
+    echo "🔍 Validating AWS profile: k8s_playground"
+    
+    # Check if AWS CLI is installed
+    if ! command -v aws &> /dev/null; then
+        echo "❌ Error: AWS CLI is not installed"
+        echo "Please install AWS CLI first: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html"
+        exit 1
+    fi
+    
+    # Check if AWS credentials directory exists
+    if [ ! -d ~/.aws ]; then
+        echo "❌ Error: AWS credentials directory not found at ~/.aws"
+        echo "Please configure AWS credentials first:"
+        echo ""
+        echo "Run: aws configure --profile k8s_playground"
+        echo "Or create the files manually:"
+        echo ""
+        echo "Create ~/.aws/credentials:"
+        echo "  [k8s_playground]"
+        echo "  aws_access_key_id = YOUR_ACCESS_KEY"
+        echo "  aws_secret_access_key = YOUR_SECRET_KEY"
+        echo ""
+        echo "Create ~/.aws/config:"
+        echo "  [profile k8s_playground]"
+        echo "  region = us-east-1"
+        echo "  output = json"
+        exit 1
+    fi
+    
+    # Check if credentials file exists
+    if [ ! -f ~/.aws/credentials ]; then
+        echo "❌ Error: AWS credentials file not found at ~/.aws/credentials"
+        echo "Please configure AWS credentials first:"
+        echo ""
+        echo "Run: aws configure --profile k8s_playground"
+        echo "Or create ~/.aws/credentials manually:"
+        echo "  [k8s_playground]"
+        echo "  aws_access_key_id = YOUR_ACCESS_KEY"
+        echo "  aws_secret_access_key = YOUR_SECRET_KEY"
+        exit 1
+    fi
+    
+    # Check if config file exists
+    if [ ! -f ~/.aws/config ]; then
+        echo "❌ Error: AWS config file not found at ~/.aws/config"
+        echo "Please create ~/.aws/config:"
+        echo "  [profile k8s_playground]"
+        echo "  region = us-east-1"
+        echo "  output = json"
+        exit 1
+    fi
+    
+    # Check if k8s_playground profile exists in credentials
+    if ! grep -q "\[k8s_playground\]" ~/.aws/credentials; then
+        echo "❌ Error: Profile 'k8s_playground' not found in ~/.aws/credentials"
+        echo "Please add the profile to your credentials file:"
+        echo ""
+        echo "Add to ~/.aws/credentials:"
+        echo "  [k8s_playground]"
+        echo "  aws_access_key_id = YOUR_ACCESS_KEY"
+        echo "  aws_secret_access_key = YOUR_SECRET_KEY"
+        exit 1
+    fi
+    
+    # Check if k8s_playground profile exists in config
+    if ! grep -q "\[profile k8s_playground\]" ~/.aws/config; then
+        echo "❌ Error: Profile 'k8s_playground' not found in ~/.aws/config"
+        echo "Please add the profile to your config file:"
+        echo ""
+        echo "Add to ~/.aws/config:"
+        echo "  [profile k8s_playground]"
+        echo "  region = us-east-1"
+        echo "  output = json"
+        exit 1
+    fi
+    
+    # Test if the profile is working
+    echo "🧪 Testing AWS profile authentication..."
+    if ! aws sts get-caller-identity --profile k8s_playground &> /dev/null; then
+        echo "❌ Error: AWS profile 'k8s_playground' authentication failed"
+        echo "Please check your AWS credentials and permissions"
+        echo ""
+        echo "Test manually: aws sts get-caller-identity --profile k8s_playground"
+        exit 1
+    fi
+    
+    # Get account info
+    ACCOUNT_INFO=$(aws sts get-caller-identity --profile k8s_playground --output json 2>/dev/null)
+    if [ $? -eq 0 ]; then
+        ACCOUNT_ID=$(echo "$ACCOUNT_INFO" | grep -o '"Account": "[^"]*"' | cut -d'"' -f4)
+        USER_ARN=$(echo "$ACCOUNT_INFO" | grep -o '"Arn": "[^"]*"' | cut -d'"' -f4)
+        echo "✅ AWS profile validated successfully!"
+        echo "   Account ID: $ACCOUNT_ID"
+        echo "   User ARN: $USER_ARN"
+    else
+        echo "❌ Error: Could not retrieve AWS account information"
+        exit 1
+    fi
+}
+
 # Function to validate parameters
 validate_parameters() {
     if [ -z "$KEY_NAME" ]; then
@@ -53,41 +155,75 @@ validate_parameters() {
     esac
     
     # Validate volume size
-    if [ "$VOLUME_SIZE" -lt 20 ] || [ "$VOLUME_SIZE" -gt 1000 ]; then
-        echo "❌ Error: Volume size must be between 20 and 1000 GB"
+    if [ "$VOLUME_SIZE" -lt 8 ] || [ "$VOLUME_SIZE" -gt 1000 ]; then
+        echo "❌ Error: Volume size must be between 8 and 1000 GB"
         exit 1
     fi
 }
 
-# Função para limpar arquivos e diretórios gerados pelo script
+# Function to clean generated files and directories
 clean_generated_files() {
-    echo "🧹 Limpando arquivos e diretórios gerados..."
+    echo "🧹 Cleaning generated files and directories..."
 
-    # Lista de arquivos gerados
+    # List of generated files
     FILES=("main.tf" "variables.tf" "terraform.tfvars" "user_data.sh" ".terraform.lock.hcl")
 
     for file in "${FILES[@]}"; do
         if [ -f "$file" ]; then
             rm -f "$file"
-            echo "  - Removido: $file"
+            echo "  - Removed: $file"
         fi
     done
 
-    # Limpa diretórios temporários se existirem (exemplo: .terraform)
+    # Clean temporary directories if they exist (example: .terraform)
     if [ -d ".terraform" ]; then
         rm -rf .terraform
-        echo "  - Removido diretório: .terraform"
+        echo "  - Removed directory: .terraform"
     fi
 
-    # Limpa arquivos de estado do Terraform, se existirem
+    # Clean Terraform state files if they exist
     for state_file in terraform.tfstate terraform.tfstate.backup; do
         if [ -f "$state_file" ]; then
             rm -f "$state_file"
-            echo "  - Removido: $state_file"
+            echo "  - Removed: $state_file"
         fi
     done
 
-    echo "✅ Limpeza concluída!"
+    echo "✅ Cleanup completed!"
+}
+
+# Function to get the current public IPv4 address
+get_my_public_ip() {
+    # Try to get the IP using different public services
+    local ip
+    ip=$(curl -s https://api.ipify.org 2>/dev/null)
+    if [ -z "$ip" ]; then
+        ip=$(curl -s https://ifconfig.me 2>/dev/null)
+    fi
+    if [ -z "$ip" ]; then
+        ip=$(curl -s https://ipv4.icanhazip.com 2>/dev/null)
+    fi
+    if [ -z "$ip" ]; then
+        echo "❌ Could not automatically obtain public IP."
+        exit 1
+    fi
+    echo "$ip"
+}
+
+# Function to replace ingress cidr_blocks with the user's public IP
+replace_ingress_cidr_blocks() {
+    local ip
+    ip=$(get_my_public_ip)
+    echo "🌐 Detected your public IP: $ip"
+    # Replace all ingress cidr_blocks with the detected IP in main.tf
+    if [ -f "main.tf" ]; then
+        # Only replace ingress blocks (not egress)
+        # Assumes ingress blocks use cidr_blocks = ["127.0.0.1"]
+        sed -i.bak "s/cidr_blocks = \[\"127\.0\.0\.1\"\]/cidr_blocks = [\"$ip\/32\"]/g" main.tf
+        echo "✅ ingress cidr_blocks updated to $ip/32 in main.tf"
+    else
+        echo "⚠️  main.tf not found to update cidr_blocks."
+    fi
 }
 
 # Function to generate main.tf
@@ -108,6 +244,7 @@ terraform {
 
 provider "aws" {
   region = "${REGION}"
+  profile = "k8s_playground"
   
   default_tags {
     tags = {
@@ -150,7 +287,7 @@ resource "aws_security_group" "k8s_playground" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["127.0.0.1"]
     description = "SSH access"
   }
 
@@ -159,7 +296,7 @@ resource "aws_security_group" "k8s_playground" {
     from_port   = 30001
     to_port     = 30002
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["127.0.0.1"]
     description = "K8S services (Harbor, Dashboard, etc.)"
   }
 
@@ -168,7 +305,7 @@ resource "aws_security_group" "k8s_playground" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["127.0.0.1"]
     description = "HTTP access"
   }
 
@@ -177,7 +314,7 @@ resource "aws_security_group" "k8s_playground" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["127.0.0.1"]
     description = "HTTPS access"
   }
 
@@ -253,50 +390,7 @@ resource "aws_instance" "k8s_playground" {
   }
 }
 
-# Elastic IP for persistent public IP
-resource "aws_eip" "k8s_playground" {
-  instance = aws_instance.k8s_playground.id
-  domain   = "vpc"
-
-  tags = {
-    Name = "k8s-playground-eip"
-  }
-}
-
 # Outputs
-output "public_ip" {
-  description = "Public IP address of the EC2 instance"
-  value       = aws_eip.k8s_playground.public_ip
-}
-
-output "instance_id" {
-  description = "ID of the EC2 instance"
-  value       = aws_instance.k8s_playground.id
-}
-
-output "instance_type" {
-  description = "Type of the EC2 instance"
-  value       = aws_instance.k8s_playground.instance_type
-}
-
-output "ssh_command" {
-  description = "SSH command to connect to the instance"
-  value       = "ssh -i ~/.ssh/${KEY_NAME}.pem ubuntu@\${aws_eip.k8s_playground.public_ip}"
-}
-
-output "access_urls" {
-  description = "Access URLs for K8S Playground services"
-  value = {
-    ssh            = "ssh -i ~/.ssh/${KEY_NAME}.pem ubuntu@\${aws_eip.k8s_playground.public_ip}"
-    hello_apache   = "http://\${aws_eip.k8s_playground.public_ip}:30001/hello-apache/"
-    k8s_dashboard  = "https://\${aws_eip.k8s_playground.public_ip}:30002/"
-    harbor         = "http://\${aws_eip.k8s_playground.public_ip}:30001/"
-    pgadmin        = "http://\${aws_eip.k8s_playground.public_ip}:30001/"
-    grafana        = "http://\${aws_eip.k8s_playground.public_ip}:30001/"
-    jaeger         = "http://\${aws_eip.k8s_playground.public_ip}:30001/"
-  }
-}
-
 output "setup_instructions" {
   description = "Instructions to setup K8S Playground"
   value = <<-EOT
@@ -306,7 +400,7 @@ output "setup_instructions" {
     
     📋 Next steps:
     1. SSH into the instance:
-       ssh -i ~/.ssh/${KEY_NAME}.pem ubuntu@\${aws_eip.k8s_playground.public_ip}
+       ssh -i ~/.ssh/${KEY_NAME}.pem ubuntu@instance_public_ip
     
     2. Clone the repository:
        git clone <your-repo-url>
@@ -314,14 +408,6 @@ output "setup_instructions" {
     
     3. Run the bootstrap script:
        ./bootstrap.sh
-    
-    🔗 Access URLs:
-    - Hello Apache: http://\${aws_eip.k8s_playground.public_ip}:30001/hello-apache/
-    - K8S Dashboard: https://\${aws_eip.k8s_playground.public_ip}:30002/
-    - Harbor Registry: http://\${aws_eip.k8s_playground.public_ip}:30001/
-    - pgAdmin: http://\${aws_eip.k8s_playground.public_ip}:30001/
-    - Grafana: http://\${aws_eip.k8s_playground.public_ip}:30001/
-    - Jaeger: http://\${aws_eip.k8s_playground.public_ip}:30001/
     
     🗑️  To destroy: terraform destroy
     ==========================================
@@ -704,9 +790,11 @@ echo "=========================================="
 echo "🔧 Terraform Configuration Generator"
 echo "=========================================="
 
+validate_aws_profile
 validate_parameters
 clean_generated_files
 generate_main_tf
+replace_ingress_cidr_blocks
 generate_variables_tf
 generate_user_data
 generate_tfvars
