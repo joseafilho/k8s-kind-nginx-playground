@@ -20,6 +20,7 @@ AWS_KEY_NAME=""
 AWS_AMI_ID=""
 AWS_SUBNET_ID=""
 AWS_SECURITY_GROUP_ID=""
+AWS_AUTO_APPROVE=false
 
 # Function to show usage
 show_usage() {
@@ -39,6 +40,7 @@ show_usage() {
     echo "  --ami-id AMI            AWS AMI ID (optional)"
     echo "  --subnet-id SUBNET      AWS subnet ID (optional)"
     echo "  --security-group SG     AWS security group ID (optional)"
+    echo "  --auto-approve          Auto-approve terraform apply (default: false)"
     echo ""
     echo "General Options:"
     echo "  --help                  Show this help message"
@@ -56,6 +58,9 @@ show_usage() {
     echo "  AWS with custom networking:"
     echo "    $0 --aws --instance-type t3a.medium --key-name my-key \\"
     echo "        --subnet-id subnet-12345 --security-group sg-12345"
+    echo ""
+    echo "  AWS with auto-approve:"
+    echo "    $0 --aws --instance-type t3a.medium --key-name my-key --auto-approve"
 }
 
 # Function to validate AWS prerequisites
@@ -82,6 +87,15 @@ validate_aws_prerequisites() {
         exit 1
     fi
     
+    # Warn about auto-approve if enabled
+    if [ "$AWS_AUTO_APPROVE" = true ]; then
+        echo "⚠️  WARNING: Auto-approve is enabled!"
+        echo "   This will apply Terraform changes in AWS directly."
+        echo "   Make sure you have reviewed the plan before proceeding."
+        echo ""
+        read -p "Press Enter to continue or Ctrl+C to cancel..."
+    fi
+    
     echo "✅ AWS prerequisites validated!"
 }
 
@@ -96,11 +110,11 @@ create_terraform_config() {
     cd terraform
     
     # Build command with all parameters
-    GENERATE_CMD="./create-terraform.sh \
+    GENERATE_CMD="./play-terraform.sh \
         --instance-type \"$AWS_INSTANCE_TYPE\" \
         --region \"$AWS_REGION\" \
         --key-name \"$AWS_KEY_NAME\" \
-        --volume-size 8"
+        --volume-size 50"
     
     if [ -n "$AWS_AMI_ID" ]; then
         GENERATE_CMD="$GENERATE_CMD --ami-id \"$AWS_AMI_ID\""
@@ -144,37 +158,31 @@ deploy_to_aws() {
     echo "📋 Planning deployment..."
     terraform plan
     
-    # # Deploy
-    # echo "🚀 Deploying infrastructure..."
-    # terraform apply -auto-approve
-    
-    # # Get outputs
-    # PUBLIC_IP=$(terraform output -raw public_ip)
-    # INSTANCE_ID=$(terraform output -raw instance_id)
-    
-    echo ""
-    echo "=========================================="
-    echo "✅ AWS deployment completed!"
-    echo "=========================================="
-    echo "Instance Details:"
-    echo "  - Instance ID: $INSTANCE_ID"
-    echo "  - Public IP: $PUBLIC_IP"
-    echo "  - Instance Type: $AWS_INSTANCE_TYPE"
-    echo "  - Region: $AWS_REGION"
-    echo ""
-    echo "🔗 Access URLs:"
-    echo "  - SSH: ssh -i ~/.ssh/${AWS_KEY_NAME}.pem ubuntu@$PUBLIC_IP"
-    echo "  - Hello Apache: http://$PUBLIC_IP:30001/hello-apache/"
-    echo "  - Kubernetes Dashboard: https://$PUBLIC_IP:30002/"
-    echo "  - Harbor Registry: http://$PUBLIC_IP:30001/"
-    echo ""
-    echo "📋 Next steps:"
-    echo "  1. SSH into the instance: ssh -i ~/.ssh/${AWS_KEY_NAME}.pem ubuntu@$PUBLIC_IP"
-    echo "  2. Clone the repository: git clone <your-repo>"
-    echo "  3. Run the bootstrap script: ./bootstrap.sh"
-    echo ""
-    echo "🗑️  To destroy: cd terraform && terraform destroy"
-    echo "=========================================="
+    # Deploy
+    echo "🚀 Deploying infrastructure..."
+    if [ "$AWS_AUTO_APPROVE" = true ]; then
+        echo "⚠️  Auto-approve enabled - applying changes without confirmation"
+        terraform apply -auto-approve
+
+        echo ""
+        echo "=========================================="
+        echo "✅ AWS deployment completed."
+        echo "=========================================="
+        echo ""
+        echo "📋 Next steps:"
+        echo "  1. SSH into the instance: ssh -i ~/.ssh/${AWS_KEY_NAME}.pem ubuntu@$PUBLIC_IP"
+        echo "  2. Clone the repository: git clone <your-repo>"
+        echo "  3. Run the bootstrap script: TODO"
+        echo ""
+        echo "🗑️  To destroy: cd terraform && terraform destroy"
+        echo "=========================================="
+    else
+        echo ""
+        echo "=========================================="
+        echo "✅ Terraform plan completed."
+        echo "=========================================="
+        echo ""
+    fi
     
     cd ..
 }
@@ -221,6 +229,10 @@ while [[ $# -gt 0 ]]; do
         --security-group)
             AWS_SECURITY_GROUP_ID="$2"
             shift 2
+            ;;
+        --auto-approve)
+            AWS_AUTO_APPROVE=true
+            shift
             ;;
         --memory)
             MEMORY="$2"
@@ -269,6 +281,7 @@ elif [ "$PROVIDER" = "aws" ]; then
     echo "Instance Type: $AWS_INSTANCE_TYPE"
     echo "Region: $AWS_REGION"
     echo "Key Name: $AWS_KEY_NAME"
+    echo "Auto-approve: $([ "$AWS_AUTO_APPROVE" = true ] && echo "Enabled" || echo "Disabled")"
     if [ -n "$AWS_AMI_ID" ]; then
         echo "AMI ID: $AWS_AMI_ID"
     fi

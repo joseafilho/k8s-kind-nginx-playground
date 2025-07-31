@@ -9,7 +9,7 @@ set -e
 INSTANCE_TYPE="t3a.medium"
 REGION="us-east-1"
 KEY_NAME=""
-VOLUME_SIZE=8
+VOLUME_SIZE=50
 SUBNET_ID=""
 SECURITY_GROUP_ID=""
 AMI_ID=""
@@ -22,7 +22,7 @@ show_usage() {
     echo "  --instance-type TYPE    AWS instance type (default: t3a.medium)"
     echo "  --region REGION         AWS region (default: us-east-1)"
     echo "  --key-name KEY          AWS key pair name (required)"
-    echo "  --volume-size GB        EBS volume size in GB (default: 8)"
+    echo "  --volume-size GB        EBS volume size in GB (default: 50)"
     echo "  --ami-id AMI            AWS AMI ID (optional, uses data source if not specified)"
     echo "  --subnet-id SUBNET      AWS subnet ID (optional)"
     echo "  --security-group SG     AWS security group ID (optional)"
@@ -37,14 +37,14 @@ show_usage() {
 # Function to validate AWS profile
 validate_aws_profile() {
     echo "🔍 Validating AWS profile: k8s_playground"
-    
+
     # Check if AWS CLI is installed
     if ! command -v aws &> /dev/null; then
         echo "❌ Error: AWS CLI is not installed"
         echo "Please install AWS CLI first: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html"
         exit 1
     fi
-    
+
     # Check if AWS credentials directory exists
     if [ ! -d ~/.aws ]; then
         echo "❌ Error: AWS credentials directory not found at ~/.aws"
@@ -64,7 +64,7 @@ validate_aws_profile() {
         echo "  output = json"
         exit 1
     fi
-    
+
     # Check if credentials file exists
     if [ ! -f ~/.aws/credentials ]; then
         echo "❌ Error: AWS credentials file not found at ~/.aws/credentials"
@@ -77,7 +77,7 @@ validate_aws_profile() {
         echo "  aws_secret_access_key = YOUR_SECRET_KEY"
         exit 1
     fi
-    
+
     # Check if config file exists
     if [ ! -f ~/.aws/config ]; then
         echo "❌ Error: AWS config file not found at ~/.aws/config"
@@ -87,7 +87,7 @@ validate_aws_profile() {
         echo "  output = json"
         exit 1
     fi
-    
+
     # Check if k8s_playground profile exists in credentials
     if ! grep -q "\[k8s_playground\]" ~/.aws/credentials; then
         echo "❌ Error: Profile 'k8s_playground' not found in ~/.aws/credentials"
@@ -99,7 +99,7 @@ validate_aws_profile() {
         echo "  aws_secret_access_key = YOUR_SECRET_KEY"
         exit 1
     fi
-    
+
     # Check if k8s_playground profile exists in config
     if ! grep -q "\[profile k8s_playground\]" ~/.aws/config; then
         echo "❌ Error: Profile 'k8s_playground' not found in ~/.aws/config"
@@ -111,7 +111,7 @@ validate_aws_profile() {
         echo "  output = json"
         exit 1
     fi
-    
+
     # Test if the profile is working
     echo "🧪 Testing AWS profile authentication..."
     if ! aws sts get-caller-identity --profile k8s_playground &> /dev/null; then
@@ -121,7 +121,7 @@ validate_aws_profile() {
         echo "Test manually: aws sts get-caller-identity --profile k8s_playground"
         exit 1
     fi
-    
+
     # Get account info
     ACCOUNT_INFO=$(aws sts get-caller-identity --profile k8s_playground --output json 2>/dev/null)
     if [ $? -eq 0 ]; then
@@ -143,7 +143,7 @@ validate_parameters() {
         show_usage
         exit 1
     fi
-    
+
     # Validate instance type
     case $INSTANCE_TYPE in
         t3a.medium|t3a.large|t3a.xlarge|t3a.2xlarge)
@@ -153,7 +153,7 @@ validate_parameters() {
             exit 1
             ;;
     esac
-    
+
     # Validate volume size
     if [ "$VOLUME_SIZE" -lt 8 ] || [ "$VOLUME_SIZE" -gt 1000 ]; then
         echo "❌ Error: Volume size must be between 8 and 1000 GB"
@@ -166,7 +166,7 @@ clean_generated_files() {
     echo "🧹 Cleaning generated files and directories..."
 
     # List of generated files
-    FILES=("main.tf" "variables.tf" "terraform.tfvars" "user_data.sh" ".terraform.lock.hcl")
+    FILES=("main.tf" "variables.tf" "terraform.tfvars" "user_data.sh" ".terraform.lock.hcl" "main.tf.bak")
 
     for file in "${FILES[@]}"; do
         if [ -f "$file" ]; then
@@ -229,7 +229,7 @@ replace_ingress_cidr_blocks() {
 # Function to generate main.tf
 generate_main_tf() {
     echo "📝 Generating main.tf..."
-    
+
     cat > main.tf << EOF
 terraform {
   required_providers {
@@ -238,19 +238,20 @@ terraform {
       version = "~> 5.0"
     }
   }
-  
+
   required_version = ">= 1.0"
 }
 
 provider "aws" {
   region = "${REGION}"
   profile = "k8s_playground"
-  
+
   default_tags {
     tags = {
       Project     = "k8s-playground"
       Environment = "development"
       ManagedBy   = "terraform"
+      category    = "k8s"
     }
   }
 }
@@ -318,6 +319,14 @@ resource "aws_security_group" "k8s_playground" {
     description = "HTTPS access"
   }
 
+  # RDP access
+  ingress {
+    from_port   = 3389
+    to_port     = 3389
+    protocol    = "tcp"
+    cidr_blocks = ["127.0.0.1"]
+  }
+
   # All outbound traffic
   egress {
     from_port   = 0
@@ -335,7 +344,7 @@ resource "aws_security_group" "k8s_playground" {
 # Data source for Ubuntu AMI (only used if ami_id is not specified)
 data "aws_ami" "ubuntu" {
   count = var.ami_id == null ? 1 : 0
-  
+
   most_recent = true
   owners      = ["099720109477"] # Canonical
 
@@ -361,6 +370,7 @@ resource "aws_instance" "k8s_playground" {
   instance_type = "${INSTANCE_TYPE}"
   key_name      = "${KEY_NAME}"
   subnet_id     = data.aws_subnet.default.id
+  iam_instance_profile = "ssm-access-role"
 
   vpc_security_group_ids = [aws_security_group.k8s_playground.id]
 
@@ -368,7 +378,7 @@ resource "aws_instance" "k8s_playground" {
     volume_size = ${VOLUME_SIZE}
     volume_type = "gp3"
     encrypted   = true
-    
+
     tags = {
       Name = "k8s-playground-root"
     }
@@ -397,18 +407,15 @@ output "setup_instructions" {
     ==========================================
     ✅ AWS deployment completed!
     ==========================================
-    
+
     📋 Next steps:
     1. SSH into the instance:
        ssh -i ~/.ssh/${KEY_NAME}.pem ubuntu@instance_public_ip
-    
+
     2. Clone the repository:
        git clone <your-repo-url>
        cd k8s-kind-nginx
-    
-    3. Run the bootstrap script:
-       ./bootstrap.sh
-    
+
     🗑️  To destroy: terraform destroy
     ==========================================
   EOT
@@ -421,7 +428,7 @@ EOF
 # Function to generate terraform.tfvars
 generate_tfvars() {
     echo "📝 Generating terraform.tfvars..."
-    
+
     cat > terraform.tfvars << EOF
 # Generated by generate-config.sh
 aws_region = "${REGION}"
@@ -437,7 +444,7 @@ EOF
     if [ -n "$SUBNET_ID" ]; then
         echo "subnet_id = \"${SUBNET_ID}\"" >> terraform.tfvars
     fi
-    
+
     if [ -n "$SECURITY_GROUP_ID" ]; then
         echo "security_group_ids = [\"${SECURITY_GROUP_ID}\"]" >> terraform.tfvars
     fi
@@ -448,7 +455,7 @@ EOF
 # Function to generate variables.tf
 generate_variables_tf() {
     echo "📝 Generating variables.tf..."
-    
+
     cat > variables.tf << EOF
 variable "aws_region" {
   description = "AWS region to deploy the infrastructure"
@@ -460,7 +467,7 @@ variable "instance_type" {
   description = "EC2 instance type"
   type        = string
   default     = "${INSTANCE_TYPE}"
-  
+
   validation {
     condition     = can(regex("^t3a\\\\.(medium|large|xlarge|2xlarge)$", var.instance_type))
     error_message = "Instance type must be t3a.medium, t3a.large, t3a.xlarge, or t3a.2xlarge."
@@ -471,7 +478,7 @@ variable "key_name" {
   description = "Name of the AWS key pair to use for SSH access"
   type        = string
   default     = "${KEY_NAME}"
-  
+
   validation {
     condition     = length(var.key_name) > 0
     error_message = "Key name must not be empty."
@@ -482,10 +489,10 @@ variable "volume_size" {
   description = "Size of the root EBS volume in GB"
   type        = number
   default     = ${VOLUME_SIZE}
-  
+
   validation {
-    condition     = var.volume_size >= 8 && var.volume_size <= 1000
-    error_message = "Volume size must be between 8 and 1000 GB."
+    condition     = var.volume_size >= 50 && var.volume_size <= 1000
+    error_message = "Volume size must be between 50 and 1000 GB."
   }
 }
 
@@ -536,7 +543,7 @@ EOF
 # Function to generate user_data.sh
 generate_user_data() {
     echo "📝 Generating user_data.sh..."
-    
+
     cat > user_data.sh << 'EOF'
 #!/bin/bash
 
@@ -575,46 +582,11 @@ apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 # Start and enable Docker
-systemctl start docker
-systemctl enable docker
+# systemctl start docker
+# systemctl enable docker
 
 # Add ubuntu user to docker group
 usermod -aG docker ubuntu
-
-# Install AWS CLI v2
-echo "☁️  Installing AWS CLI v2..."
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-./aws/install
-rm -rf aws awscliv2.zip
-
-# Install Terraform
-echo "🏗️  Installing Terraform..."
-curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
-apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-apt-get update
-apt-get install -y terraform
-
-# Install kubectl
-echo "☸️  Installing kubectl..."
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl
-mv kubectl /usr/local/bin/
-
-# Install Helm
-echo "⚓ Installing Helm..."
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-# Create directories
-echo "📁 Creating directories..."
-mkdir -p /home/ubuntu/playground
-mkdir -p /home/ubuntu/.ssh
-mkdir -p /home/ubuntu/.kube
-
-# Set permissions
-chown -R ubuntu:ubuntu /home/ubuntu/playground
-chown -R ubuntu:ubuntu /home/ubuntu/.ssh
-chown -R ubuntu:ubuntu /home/ubuntu/.kube
 
 # Create welcome message
 cat > /home/ubuntu/welcome.txt << 'WELCOME_EOF'
@@ -708,14 +680,6 @@ echo "🚀 Setting up K8S Playground..."
 # git clone https://github.com/your-username/k8s-kind-nginx.git
 # cd k8s-kind-nginx
 
-# Run bootstrap script
-# ./bootstrap.sh
-
-echo "✅ Setup script ready!"
-echo "📋 Please:"
-echo "  1. Clone your repository"
-echo "  2. Run ./bootstrap.sh"
-echo "  3. Access your services"
 SETUP_EOF
 
 chmod +x /home/ubuntu/setup-k8s-playground.sh
@@ -790,9 +754,10 @@ echo "=========================================="
 echo "🔧 Terraform Configuration Generator"
 echo "=========================================="
 
+clean_generated_files
+sleep 5
 validate_aws_profile
 validate_parameters
-clean_generated_files
 generate_main_tf
 replace_ingress_cidr_blocks
 generate_variables_tf
@@ -808,9 +773,4 @@ echo "  - variables.tf"
 echo "  - user_data.sh"
 echo "  - terraform.tfvars"
 echo ""
-echo "🚀 Next steps:"
-echo "  1. terraform init"
-echo "  2. terraform plan"
-echo "  3. terraform apply"
-echo ""
-echo "==========================================" 
+echo "=========================================="

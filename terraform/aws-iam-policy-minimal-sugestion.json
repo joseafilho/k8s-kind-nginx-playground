@@ -17,7 +17,8 @@
         "ec2:DescribeAddresses",
         "ec2:DescribeNetworkInterfaces",
         "ec2:DescribeTags",
-        "ec2:CreateInstances",
+        "ec2:DescribeInstanceAttribute",
+        "ec2:DescribeInstanceCreditSpecifications",
         "ec2:RunInstances",
         "ec2:StartInstances",
         "ec2:StopInstances",
@@ -42,7 +43,8 @@
         "ec2:ModifyVolume",
         "ec2:CreateKeyPair",
         "ec2:DeleteKeyPair",
-        "ec2:ImportKeyPair"
+        "ec2:ImportKeyPair",
+        "ec2:MonitorInstances"
       ],
       "Resource": "*"
     },

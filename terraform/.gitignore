@@ -72,6 +72,5 @@ secrets.tfvars
 # AWS credentials (if accidentally committed)
 .aws/
 aws-credentials.txt 
-
-# user_data.sh
 user_data.sh
+*.pem
