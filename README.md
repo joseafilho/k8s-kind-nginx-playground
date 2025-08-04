@@ -59,9 +59,12 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
 │           ├── namespace.yaml       # Namespace ecom-python
 │           └── service.yaml         # Service do app
 ├── bootstrap.sh                    # Script de bootstrap para provisionamento
-├── create-environment.sh           # Script unificado para criar ambiente (GUI/No-GUI)
+├── create-environment.sh           # Script unificado para criar ambiente (Local/AWS)
 ├── create-environment-without-gui.sh # Script para criar ambiente sem GUI com parâmetros
 ├── Vagrantfile                     # Arquivo de configuração do Vagrant
+├── terraform/                      # Configurações Terraform para AWS
+│   ├── README.md                   # Documentação de deploy AWS
+│   └── play-terraform.sh           # Gerador dinâmico de configuração Terraform
 ├── README.md                       # Este arquivo
 ├── roadmap/                         # Diretório para roadmap do projeto
 ├── command-utils/
@@ -96,9 +99,9 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
    cd k8s-kind-nginx-playground
    ```
 
-2. **Suba o ambiente com Vagrant:**
+2. **Suba o ambiente:**
 
-   - **Script Unificado:**
+   - **Local com Vagrant (Recomendado):**
      ```sh
      # Com GUI
      ./create-environment.sh --gui --memory 8192 --cpus 4
@@ -110,6 +113,15 @@ O ambiente é ideal para desenvolvedores que precisam de um playground completo 
      Acesso a máquina virtual via ssh:
      ```sh
      vagrant ssh
+     ```
+   
+   - **AWS EC2 (via Terraform):**
+     ```sh
+     # Deploy simples
+     ./create-environment.sh --aws --key-name my-key
+     
+     # Deploy com recursos personalizados
+     ./create-environment.sh --aws --instance-type t3.large --region us-west-2 --key-name my-key
      ```
 
 ## Validação de Funcionamento

@@ -408,16 +408,6 @@ output "setup_instructions" {
     ✅ AWS deployment completed!
     ==========================================
 
-    📋 Next steps:
-    1. SSH into the instance:
-       ssh -i ~/.ssh/${KEY_NAME}.pem ubuntu@instance_public_ip
-
-    2. Clone the repository:
-       git clone <your-repo-url>
-       cd k8s-kind-nginx
-
-    🗑️  To destroy: terraform destroy
-    ==========================================
   EOT
 }
 EOF
@@ -480,8 +470,8 @@ variable "key_name" {
   default     = "${KEY_NAME}"
 
   validation {
-    condition     = length(var.key_name) > 0
-    error_message = "Key name must not be empty."
+    condition     = can(regex("^[a-zA-Z0-9_-]+$", var.key_name)) && length(var.key_name) >= 3 && length(var.key_name) <= 50
+    error_message = "Key name must be 3-50 characters long and contain only alphanumeric characters, hyphens, and underscores."
   }
 }
 
@@ -588,116 +578,10 @@ apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 # Add ubuntu user to docker group
 usermod -aG docker ubuntu
 
-# Create welcome message
-cat > /home/ubuntu/welcome.txt << 'WELCOME_EOF'
-==========================================
-🚀 K8S Playground - AWS Instance Ready!
-==========================================
-
-📋 Instance Details:
-- Instance Type: ${instance_type}
-- Region: ${region}
-- Ubuntu 22.04 LTS
-- Docker installed and running
-- AWS CLI v2 installed
-- Terraform installed
-- kubectl installed
-- Helm installed
-
-📁 Next Steps:
-1. Clone your repository:
-   git clone <your-repo-url>
-   cd k8s-kind-nginx
-
-2. Run the bootstrap script:
-   ./bootstrap.sh
-
-3. Access your services:
-   - Hello Apache: http://<PUBLIC_IP>:30001/hello-apache/
-   - K8S Dashboard: https://<PUBLIC_IP>:30002/
-   - Harbor: http://<PUBLIC_IP>:30001/
-   - pgAdmin: http://<PUBLIC_IP>:30001/
-   - Grafana: http://<PUBLIC_IP>:30001/
-   - Jaeger: http://<PUBLIC_IP>:30001/
-
-🔧 Useful Commands:
-- Check Docker: docker --version
-- Check kubectl: kubectl version
-- Check Helm: helm version
-- Check AWS CLI: aws --version
-- Check Terraform: terraform --version
-
-📊 System Info:
-- Check system resources: htop
-- Check disk usage: df -h
-- Check memory: free -h
-
-==========================================
-WELCOME_EOF
-
-# Set welcome message permissions
-chown ubuntu:ubuntu /home/ubuntu/welcome.txt
-
-# Create system info script
-cat > /home/ubuntu/system-info.sh << 'SYSINFO_EOF'
-#!/bin/bash
 echo "=========================================="
-echo "🔍 K8S Playground System Information"
-echo "=========================================="
-echo ""
-echo "📊 System Resources:"
-echo "  - CPU: $(nproc) cores"
-echo "  - Memory: $(free -h | grep Mem | awk '{print $2}')"
-echo "  - Disk: $(df -h / | tail -1 | awk '{print $2}')"
-echo ""
-echo "🐳 Docker Status:"
-docker --version
-docker info | grep -E "(Containers|Images|Storage Driver)"
-echo ""
-echo "☸️  Kubernetes Tools:"
-kubectl version --client
-helm version
-echo ""
-echo "☁️  AWS Tools:"
-aws --version
-terraform --version
-echo ""
-echo "📁 Directories:"
-ls -la /home/ubuntu/
-echo ""
-echo "=========================================="
-SYSINFO_EOF
-
-chmod +x /home/ubuntu/system-info.sh
-chown ubuntu:ubuntu /home/ubuntu/system-info.sh
-
-# Create environment setup script
-cat > /home/ubuntu/setup-k8s-playground.sh << 'SETUP_EOF'
-#!/bin/bash
-echo "🚀 Setting up K8S Playground..."
-
-# Clone repository (replace with your actual repo URL)
-# git clone https://github.com/your-username/k8s-kind-nginx.git
-# cd k8s-kind-nginx
-
-SETUP_EOF
-
-chmod +x /home/ubuntu/setup-k8s-playground.sh
-chown ubuntu:ubuntu /home/ubuntu/setup-k8s-playground.sh
-
-# Display welcome message
-echo "=========================================="
-echo "✅ K8S Playground instance setup completed!"
-echo "=========================================="
-echo ""
-echo "📋 Instance is ready for K8S Playground deployment"
-echo "🔗 SSH into the instance to continue setup"
-echo ""
-echo "📊 Run system-info.sh to check system status"
-echo "🚀 Run setup-k8s-playground.sh to start deployment"
+echo "🚀 K8S Playground - AWS Instance Ready!"
 echo "=========================================="
 
-# Reboot to ensure all changes take effect
 echo "🔄 Rebooting in 30 seconds to apply all changes..."
 sleep 30
 reboot

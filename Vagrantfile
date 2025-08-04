@@ -74,8 +74,8 @@ Vagrant.configure("2") do |config|
       echo "🚗 Running installer scripts..."
       python3 ./playground/installers/installer.py --script "./playground/installers/configure-docker-daemon.sh" --verbose
       python3 ./playground/installers/installer.py --script "./playground/installers/configure-hosts.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/kind-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/kubectl-install.sh" --verbose
+      python3 ./playground/installers/installer.py --script "./playground/installers/kind-vagrant-install.sh" --verbose
+      python3 ./playground/installers/installer.py --script "./playground/installers/kubectl-vagrant-install.sh" --verbose
       python3 ./playground/installers/installer.py --script "./playground/installers/helm-install.sh" --verbose
       python3 ./playground/installers/installer.py --script "./playground/installers/cilium-install.sh" --verbose
       python3 ./playground/installers/installer.py --script "./playground/installers/ingress-controller-install.sh" --verbose
