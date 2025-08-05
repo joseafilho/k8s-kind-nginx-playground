@@ -21,6 +21,7 @@ AWS_AMI_ID=""
 AWS_SUBNET_ID=""
 AWS_SECURITY_GROUP_ID=""
 AWS_AUTO_APPROVE=false
+AWS_PUBLIC_IP=""
 
 # Function to show usage
 show_usage() {
@@ -40,6 +41,7 @@ show_usage() {
     echo "  --ami-id AMI            AWS AMI ID (optional)"
     echo "  --subnet-id SUBNET      AWS subnet ID (optional)"
     echo "  --security-group SG     AWS security group ID (optional)"
+    echo "  --public-ip IP          Your public IP address for AWS security group access (required for AWS)"
     echo "  --auto-approve          Auto-approve terraform apply (default: false)"
     echo ""
     echo "General Options:"
@@ -58,6 +60,9 @@ show_usage() {
     echo "  AWS with custom networking:"
     echo "    $0 --aws --instance-type t3a.medium --key-name my-key \\"
     echo "        --subnet-id subnet-12345 --security-group sg-12345"
+    echo ""
+    echo "  AWS with your public IP:"
+    echo "    $0 --aws --instance-type t3a.medium --key-name my-key --public-ip 192.168.1.100"
     echo ""
     echo "  AWS with auto-approve:"
     echo "    $0 --aws --instance-type t3a.medium --key-name my-key --auto-approve"
@@ -127,6 +132,8 @@ create_terraform_config() {
     if [ -n "$AWS_SECURITY_GROUP_ID" ]; then
         GENERATE_CMD="$GENERATE_CMD --security-group \"$AWS_SECURITY_GROUP_ID\""
     fi
+    
+    GENERATE_CMD="$GENERATE_CMD --public-ip \"$AWS_PUBLIC_IP\""
     
     # Execute the command
     eval $GENERATE_CMD
@@ -222,6 +229,10 @@ while [[ $# -gt 0 ]]; do
             AWS_SECURITY_GROUP_ID="$2"
             shift 2
             ;;
+        --public-ip)
+            AWS_PUBLIC_IP="$2"
+            shift 2
+            ;;
         --auto-approve)
             AWS_AUTO_APPROVE=true
             shift
@@ -259,6 +270,14 @@ elif [ "$PROVIDER" = "aws" ]; then
         show_usage
         exit 1
     fi
+    
+    if [ -z "$AWS_PUBLIC_IP" ]; then
+        echo "❌ Error: Your public IP address is required for AWS deployment."
+        echo "   This IP will be used to allow your access to the AWS instance."
+        echo "   Use --public-ip option to provide your public IP address."
+        show_usage
+        exit 1
+    fi
 fi
 
 echo "=========================================="
@@ -277,12 +296,12 @@ elif [ "$PROVIDER" = "aws" ]; then
     if [ -n "$AWS_AMI_ID" ]; then
         echo "AMI ID: $AWS_AMI_ID"
     fi
+    echo "Your Public IP: $AWS_PUBLIC_IP"
 fi
 echo "=========================================="
 
-if [ "$PROVIDER" = "aws" ]; then
-    deploy_to_aws
-else
+# Function to deploy to AWS
+deploy_to_local_vagrant() {
     # Local deployment (existing logic)
     echo "🛑 Stopping and destroying existing VM..."
     vagrant halt
@@ -334,4 +353,10 @@ else
         echo "  - Test: curl http://domain.local:30001/hello-apache/"
     fi
     echo "=========================================="
+}
+
+if [ "$PROVIDER" = "aws" ]; then
+    deploy_to_aws
+else
+    deploy_to_local_vagrant
 fi 

@@ -29,7 +29,7 @@ echo "🚀 Installing Prometheus Stack..."
 kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 helm install prometheus prometheus-community/kube-prometheus-stack \
     --namespace monitoring \
-    --values prometheus-values.yaml \
+    --values ./playground/observability/prometheus-values.yaml \
     --wait \
     --timeout 10m
 
@@ -38,7 +38,7 @@ echo "🔍 Installing Jaeger..."
 kubectl create namespace jaeger --dry-run=client -o yaml | kubectl apply -f -
 helm install jaeger jaegertracing/jaeger \
     --namespace jaeger \
-    --values jaeger-values.yaml \
+    --values ./playground/observability/jaeger-values.yaml \
     --wait \
     --timeout 5m
 

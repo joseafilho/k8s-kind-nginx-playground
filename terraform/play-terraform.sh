@@ -13,6 +13,7 @@ VOLUME_SIZE=50
 SUBNET_ID=""
 SECURITY_GROUP_ID=""
 AMI_ID=""
+PUBLIC_IP=""
 
 # Function to show usage
 show_usage() {
@@ -26,12 +27,14 @@ show_usage() {
     echo "  --ami-id AMI            AWS AMI ID (optional, uses data source if not specified)"
     echo "  --subnet-id SUBNET      AWS subnet ID (optional)"
     echo "  --security-group SG     AWS security group ID (optional)"
+    echo "  --public-ip IP          Your public IP address for AWS security group access (required)"
     echo "  --help                  Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0 --instance-type t3a.large --key-name my-key"
     echo "  $0 --instance-type t3a.xlarge --region us-west-2 --key-name my-key"
     echo "  $0 --instance-type t3a.medium --ami-id ami-12345 --key-name my-key"
+    echo "  $0 --instance-type t3a.medium --key-name my-key --public-ip 192.168.1.100"
 }
 
 # Function to validate AWS profile
@@ -192,35 +195,34 @@ clean_generated_files() {
     echo "✅ Cleanup completed!"
 }
 
-# Function to get the current public IPv4 address
+# Function to get the public IP address
 get_my_public_ip() {
-    # Try to get the IP using different public services
-    local ip
-    ip=$(curl -s https://api.ipify.org 2>/dev/null)
-    if [ -z "$ip" ]; then
-        ip=$(curl -s https://ifconfig.me 2>/dev/null)
+    # If PUBLIC_IP is provided, use it
+    if [ -n "$PUBLIC_IP" ]; then
+        echo "$PUBLIC_IP"
+        return
     fi
-    if [ -z "$ip" ]; then
-        ip=$(curl -s https://ipv4.icanhazip.com 2>/dev/null)
-    fi
-    if [ -z "$ip" ]; then
-        echo "❌ Could not automatically obtain public IP."
-        exit 1
-    fi
-    echo "$ip"
+    
+    # If no IP is provided, show error and exit
+    echo "❌ Your public IP address is required."
+    echo "Please provide your public IP address using --public-ip option."
+    echo "This IP will be used to allow your access to the AWS instance."
+    echo "Example: --public-ip 192.168.1.100"
+    exit 1
 }
 
 # Function to replace ingress cidr_blocks with the user's public IP
 replace_ingress_cidr_blocks() {
     local ip
     ip=$(get_my_public_ip)
-    echo "🌐 Detected your public IP: $ip"
+    echo "🌐 Using your public IP: $ip"
+    echo "   This IP will be used to allow your access to the AWS instance security groups."
     # Replace all ingress cidr_blocks with the detected IP in main.tf
     if [ -f "main.tf" ]; then
         # Only replace ingress blocks (not egress)
         # Assumes ingress blocks use cidr_blocks = ["127.0.0.1"]
         sed -i.bak "s/cidr_blocks = \[\"127\.0\.0\.1\"\]/cidr_blocks = [\"$ip\/32\"]/g" main.tf
-        echo "✅ ingress cidr_blocks updated to $ip/32 in main.tf"
+        echo "✅ Security group ingress rules updated to allow access from $ip/32"
     else
         echo "⚠️  main.tf not found to update cidr_blocks."
     fi
@@ -282,42 +284,6 @@ resource "aws_security_group" "k8s_playground" {
   name_prefix = "k8s-playground-"
   vpc_id      = data.aws_vpc.default.id
   description = "Security group for K8S Playground"
-
-  # SSH access
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["127.0.0.1"]
-    description = "SSH access"
-  }
-
-  # K8S services ports
-  ingress {
-    from_port   = 30001
-    to_port     = 30002
-    protocol    = "tcp"
-    cidr_blocks = ["127.0.0.1"]
-    description = "K8S services (Harbor, Dashboard, etc.)"
-  }
-
-  # HTTP access
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["127.0.0.1"]
-    description = "HTTP access"
-  }
-
-  # HTTPS access
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["127.0.0.1"]
-    description = "HTTPS access"
-  }
 
   # RDP access
   ingress {
@@ -619,6 +585,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --ami-id)
             AMI_ID="$2"
+            shift 2
+            ;;
+        --public-ip)
+            PUBLIC_IP="$2"
             shift 2
             ;;
         --help)
