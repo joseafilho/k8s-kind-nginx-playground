@@ -72,19 +72,20 @@ Vagrant.configure("2") do |config|
       pip3 install -r ./playground/installers/requirements.txt
 
       echo "🚗 Running installer scripts..."
-      python3 ./playground/installers/installer.py --script "./playground/installers/configure-docker-daemon.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/configure-hosts.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/kind-vagrant-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/kubectl-vagrant-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/helm-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/cilium-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/ingress-controller-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/apache-hello-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/kube-dash-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/harbor-install.sh" --verbose
-      # python3 ./playground/installers/installer.py --script "./playground/installers/observability-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/postgres-install.sh" --verbose
-      python3 ./playground/installers/installer.py --script "./playground/installers/ecom-python-install.sh" --verbose
+      ./playground/installers/configure-docker-daemon.sh
+      ./playground/installers/configure-hosts.sh
+      ./playground/installers/kind-vagrant-install.sh
+      ./playground/installers/kubectl-vagrant-install.sh
+      ./playground/installers/helm-install.sh
+      ./playground/installers/cilium-install.sh
+      ./playground/installers/kubectl-top-install.sh
+      ./playground/installers/ingress-controller-install.sh
+      ./playground/installers/kube-dash-install.sh
+      ./playground/installers/observability-install.sh
+      ./playground/installers/apache-hello-install.sh
+      ./playground/installers/harbor-install.sh
+      ./playground/installers/postgres-install.sh
+      ./playground/installers/ecom-python-install.sh
     SHELL
   end
 end
