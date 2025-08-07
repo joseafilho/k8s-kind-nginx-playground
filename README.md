@@ -1,6 +1,4 @@
-# k8s-kind-nginx-playground
-
-K8S Playground.
+# K8S Playground
 
 ## Descrição
 
