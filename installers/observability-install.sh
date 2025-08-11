@@ -34,36 +34,35 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
     --timeout 10m
 
 # 2. Install Jaeger
-echo "🔍 Installing Jaeger..."
-kubectl create namespace jaeger --dry-run=client -o yaml | kubectl apply -f -
-helm install jaeger jaegertracing/jaeger \
-    --namespace jaeger \
-    --values ./playground/observability/jaeger-values.yaml \
-    --wait \
-    --timeout 5m
-
-# TODO: Install Loki.
-# 3. Install Loki
-# echo "📋 Installing Loki..."
-# kubectl create namespace logging --dry-run=client -o yaml | kubectl apply -f -
-# helm install loki grafana/loki \
-#     --namespace logging \
-#     --values loki-values.yaml \
+# echo "🔍 Installing Jaeger..."
+# kubectl create namespace jaeger --dry-run=client -o yaml | kubectl apply -f -
+# helm install jaeger jaegertracing/jaeger \
+#     --namespace jaeger \
+#     --values ./playground/observability/jaeger-values.yaml \
 #     --wait \
 #     --timeout 5m
+
+# 3. Install Loki
+echo "📋 Installing Loki..."
+kubectl create namespace logging --dry-run=client -o yaml | kubectl apply -f -
+helm install loki grafana/loki \
+    --namespace logging \
+    --values ./playground/observability/loki-values.yaml \
+    --wait \
+    --timeout 10m
 
 # Wait for pods to be ready
 echo "⏳ Waiting for pods to be ready..."
 kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=grafana -n monitoring --timeout=300s
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=jaeger -n jaeger --timeout=300s
-# kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=loki -n logging --timeout=300s
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=loki -n logging --timeout=300s
+# kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=jaeger -n jaeger --timeout=300s
 
 # Check installation status
 echo "🔍 Checking installation status..."
 kubectl get pods -n monitoring
-kubectl get pods -n jaeger
-# kubectl get pods -n logging
-kubectl get ingress -A | grep -E "(grafana|jaeger)" #|loki
+# kubectl get pods -n jaeger
+kubectl get pods -n logging
+kubectl get ingress -A | grep -E "(grafana|jaeger|loki)"
 
 echo ""
 echo "=========================================="

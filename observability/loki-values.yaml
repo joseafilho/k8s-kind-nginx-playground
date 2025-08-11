@@ -1,22 +1,96 @@
-# Loki Values
+# Loki Values - Simple Configuration
 # Log Aggregation
+
+# Set deployment mode to SingleBinary
+deploymentMode: SingleBinary
 
 # Loki Configuration
 loki:
   auth_enabled: false
-  singleBinary:
-    replicas: 1
-    persistence:
-      enabled: true
-      size: 5Gi
-      storageClassName: standard
-    resources:
-      requests:
-        memory: 256Mi
-        cpu: 100m
-      limits:
-        memory: 512Mi
-        cpu: 200m
+  
+  # Use filesystem storage for development
+  storage:
+    type: filesystem
+    filesystem:
+      chunks_directory: /var/loki/chunks
+      rules_directory: /var/loki/rules
+  
+  # Schema configuration for Loki
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+# Single binary configuration
+singleBinary:
+  replicas: 1
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 200m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+  extraVolumeMounts:
+    - name: loki-tmp
+      mountPath: /var/loki
+  extraVolumes:
+    - name: loki-tmp
+      emptyDir: {}
+
+# Zero out replica counts of other deployment modes
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+
+ingester:
+  replicas: 0
+querier:
+  replicas: 0
+queryFrontend:
+  replicas: 0
+queryScheduler:
+  replicas: 0
+distributor:
+  replicas: 0
+compactor:
+  replicas: 0
+indexGateway:
+  replicas: 0
+bloomCompactor:
+  replicas: 0
+bloomGateway:
+  replicas: 0
+
+# Disable ALL cache components to prevent memory issues
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false
+  
+# Disable all memcached components
+memcached:
+  enabled: false
+memcachedExporter:
+  enabled: false
+memcachedChunks:
+  enabled: false
+memcachedFrontend:
+  enabled: false
+memcachedIndexQueries:
+  enabled: false
+memcachedIndexWrites:
+  enabled: false
 
 # Ingress
 ingress:

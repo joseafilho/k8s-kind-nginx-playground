@@ -82,10 +82,10 @@ Vagrant.configure("2") do |config|
       ./playground/installers/ingress-controller-install.sh
       ./playground/installers/kube-dash-install.sh
       ./playground/installers/observability-install.sh
-      ./playground/installers/apache-hello-install.sh
-      ./playground/installers/harbor-install.sh
-      ./playground/installers/postgres-install.sh
-      ./playground/installers/ecom-python-install.sh
+      # ./playground/installers/apache-hello-install.sh
+      # ./playground/installers/harbor-install.sh
+      # ./playground/installers/postgres-install.sh
+      # ./playground/installers/ecom-python-install.sh
     SHELL
   end
 end
