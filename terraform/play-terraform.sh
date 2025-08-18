@@ -275,7 +275,7 @@ data "aws_subnet" "default" {
   }
   filter {
     name   = "availability-zone"
-    values = ["us-east-1a"]
+    values = ["${REGION}a"]
   }
 }
 
@@ -528,7 +528,15 @@ apt-get install -y \
     htop \
     tree \
     vim \
-    nano
+    nano \
+    xfce4 \
+    xfce4-goodies \
+    xrdp \
+    firefox
+
+# Configure XFCE
+echo xfce4-session > /home/ubuntu/.xsession
+sudo usermod -aG ssl-cert $USER
 
 # Install Docker
 echo "🐳 Installing Docker..."

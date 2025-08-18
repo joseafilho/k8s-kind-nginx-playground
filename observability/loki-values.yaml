@@ -8,6 +8,13 @@ deploymentMode: SingleBinary
 loki:
   auth_enabled: false
   
+  # Configuration to accept 1 replica
+  common:
+    replication_factor: 1
+    ring:
+      kvstore:
+        store: inmemory
+  
   # Use filesystem storage for development
   storage:
     type: filesystem
@@ -92,16 +99,17 @@ memcachedIndexQueries:
 memcachedIndexWrites:
   enabled: false
 
-# Ingress
-ingress:
+gateway:
   enabled: true
-  ingressClassName: nginx
-  hosts:
-    - loki.local
-  path: /
-  pathType: Prefix
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - host: loki.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
 
 # Service
 service:

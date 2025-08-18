@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Unified script to create environment with or without GUI
-# Usage: ./create-environment.sh --gui --memory 8192 --cpus 4
-# Usage: ./create-environment.sh --no-gui --memory 4096 --cpus 2
-# Usage: ./create-environment.sh --aws --instance-type t3a.medium --region us-east-1
-
 set -e
 
 # Default values
@@ -161,10 +156,6 @@ deploy_to_aws() {
     cd terraform
     terraform init
     
-    # Plan deployment
-    echo "📋 Planning deployment..."
-    terraform plan
-    
     # Deploy
     echo "🚀 Deploying infrastructure..."
     if [ "$AWS_AUTO_APPROVE" = true ]; then
@@ -176,11 +167,45 @@ deploy_to_aws() {
         echo "✅ AWS deployment completed."
         echo "=========================================="
     else
+        echo "📋 Planning deployment..."
+        terraform plan
+        
         echo ""
         echo "=========================================="
         echo "✅ Terraform plan completed."
         echo "=========================================="
         echo ""
+    fi
+
+    # Wait until the EC2 instance status checks are "passed"
+    INSTANCE_ID=$(terraform output -raw k8s_playground_instance_id 2>/dev/null)
+    if [ -z "$INSTANCE_ID" ]; then
+        # Try to get the instance ID via AWS CLI if terraform output does not exist
+        INSTANCE_ID=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=k8s-playground" \
+            --query "Reservations[*].Instances[*].InstanceId" \
+            --region "$AWS_REGION" \
+            --output text | head -n1)
+    fi
+
+    if [ -n "$INSTANCE_ID" ]; then
+        echo "⏳ Waiting for EC2 instance ($INSTANCE_ID) status checks to pass..."
+        while true; do
+            STATUS=$(aws ec2 describe-instance-status \
+                --instance-ids "$INSTANCE_ID" \
+                --region "$AWS_REGION" \
+                --query "InstanceStatuses[0].InstanceStatus.Status" \
+                --output text 2>/dev/null)
+            if [ "$STATUS" = "ok" ]; then
+                echo "✅ Instance status checks passed!"
+                break
+            else
+                echo "⌛ Current status: $STATUS. Waiting 10 seconds..."
+                sleep 10
+            fi
+        done
+    else
+        echo "⚠️  Could not determine EC2 instance ID to wait for status checks."
     fi
     
     cd ..
