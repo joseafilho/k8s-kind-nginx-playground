@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+  namespace: logging
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+      graceful_shutdown_timeout: 30s
+    
+    positions:
+      filename: /tmp/positions.yaml
+      sync_period: 10s
+    
+    clients:
+      - url: http://loki.logging.svc.cluster.local:3100/loki/api/v1/push
+        batchwait: 1s
+        batchsize: 1024
+        timeout: 10s
+        rate_limit: 1000
+        rate_limit_burst: 2000
+    
+    scrape_configs:
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        pipeline_stages:
+          - docker: {}
+          - match:
+              selector: '{app=".*"}'
+              stages:
+                - json:
+                    expressions:
+                      stream: stream
+                      time: time
+                      level: level
+                      msg: msg
+        # Limitar arquivos monitorados
+        max_discovered_targets: 1000
+        # Configurações de arquivo
+        static_configs: []
+        file_sd_configs: []

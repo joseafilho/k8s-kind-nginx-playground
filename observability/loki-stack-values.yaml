@@ -1,0 +1,219 @@
+# Loki Stack Values - Grafana + Loki
+# Stack completo de observabilidade para logs
+
+# Configuração do Grafana
+grafana:
+  enabled: true
+  
+  # Configuração de persistência
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: ""
+  
+  # Configuração de admin
+  adminPassword: "admin123"
+  
+  # Configuração de ingress
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: grafana.local
+    path: /
+    pathType: Prefix
+    tls: []
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # Forçar o uso do hostname correto
+    hosts:
+      - grafana.local
+  
+  # Configuração de service
+  service:
+    type: ClusterIP
+    port: 80
+  
+  # Configuração de recursos
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+  
+  # Dashboards pre-configurados
+  dashboards:
+    default:
+      loki-overview:
+        gnetId: 12019
+        revision: 1
+        datasource: Loki
+  
+  # Data sources pre-configurados
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Loki
+          type: loki
+          url: http://loki.logging.svc.cluster.local:3100
+          access: proxy
+          isDefault: true
+
+# Configuração do Loki
+loki:
+  enabled: true
+  
+  # Configuração de deployment
+  deploymentMode: SingleBinary
+  
+  # Configuração de autenticação
+  auth_enabled: false
+  
+  # Configuração de storage
+  storage:
+    type: filesystem
+    filesystem:
+      chunks_directory: /var/loki/chunks
+      rules_directory: /var/loki/rules
+  
+  # Configuração de schema
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+  
+  # Configuração de single binary
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 200m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+    # Configurações para resolver "too many open files"
+    extraArgs:
+      - -log.level=info
+      - -log.format=logfmt
+    extraVolumeMounts:
+      - name: loki-config
+        mountPath: /etc/loki
+        readOnly: true
+    extraVolumes:
+      - name: loki-config
+        configMap:
+          name: loki-config
+    # Configurações de limites do sistema
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 1000
+    # Configurações de configuração do Loki
+    loki:
+      limits_config:
+        enforce_metric_name: false
+        reject_old_samples: true
+        reject_old_samples_max_age: 168h
+      ingester:
+        lifecycler:
+          ring:
+            kvstore:
+              store: inmemory
+            replication_factor: 1
+          final_sleep: 0s
+        chunk_idle_period: 5m
+        chunk_retain_period: 30s
+        max_chunk_age: 1h
+        chunk_target_size: 1048576
+        chunk_encoding: snappy
+        max_stale_chunk_idle_time: 2m
+        max_transfer_retries: 0
+        wal:
+          dir: /var/loki/wal
+      storage_config:
+        filesystem:
+          chunks_directory: /var/loki/chunks
+          rules_directory: /var/loki/rules
+        table_manager:
+          retention_deletes_enabled: true
+          retention_period: 744h
+      compactor:
+        working_directory: /var/loki/compactor
+        shared_store: filesystem
+        compaction_interval: 10m
+        retention_enabled: true
+        retention_delete_delay: 2h
+        retention_delete_worker_count: 150
+  
+  # Configuração de gateway
+  gateway:
+    enabled: true
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hostname: loki.local
+      path: /
+      pathType: Prefix
+      tls: []
+      # Forçar o uso do hostname correto
+      hosts:
+        - loki.local
+  
+  # Configuração de service
+  service:
+    type: ClusterIP
+  
+  # Configuração de retenção
+  retention:
+    days: 7
+
+# Configuração do Promtail (coletor de logs)
+promtail:
+  enabled: true
+  
+  # Configuração de recursos
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+  
+  # Configurações para resolver problemas de arquivos abertos
+  # Temporariamente removido para resolver conflito de volumes
+  # extraVolumeMounts:
+  #   - name: promtail-config
+  #     mountPath: /etc/promtail
+  #     readOnly: true
+  # extraVolumes:
+  #   - name: promtail-config
+  #     configMap:
+  #       name: promtail-config
+  # Configurações de segurança e limites
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  # Configurações de configuração do Promtail
+  # Usando configuração padrão do Helm Chart para evitar conflitos
+
+# Configurações globais
+global:
+  clusterDomain: cluster.local
+  storageClass: ""
+  
+# Configuração de namespace
+namespaceOverride: "logging"

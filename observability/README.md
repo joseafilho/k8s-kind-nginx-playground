@@ -19,10 +19,12 @@ Stack completa de observabilidade para monitoramento do cluster Kubernetes.
 - Rastreamento de requisições
 - Análise de performance
 
-### 4. **Loki**
-- Coletação e armazenamento de logs
+### 4. **Loki Stack**
+- Stack completo: Grafana + Loki + Promtail
+- Coletão e armazenamento de logs
 - Query de logs similar ao Prometheus
 - Integração com Grafana
+- Dashboards pre-configurados
 
 ### 5. **AlertManager**
 - Gerenciamento de alertas
@@ -79,14 +81,18 @@ Stack completa de observabilidade para monitoramento do cluster Kubernetes.
 - Sampling: 100%
 - UI: Habilitado
 
-### Loki Values
+### Loki Stack Values
+- Grafana + Loki + Promtail integrados
 - Retention: 7 dias
 - Storage: 5Gi
 - Single binary mode
+- Dashboards automáticos
 
 ## Referências
 
 - [Prometheus Documentation](https://prometheus.io/docs/)
 - [Grafana Documentation](https://grafana.com/docs/)
 - [Jaeger Documentation](https://www.jaegertracing.io/docs/)
-- [Loki Documentation](https://grafana.com/docs/loki/) 
+- [Loki Stack Documentation](https://grafana.com/docs/loki/)
+- [Loki Stack Examples](observability/loki-examples.md)
+- [Loki Stack README](observability/README-loki-stack.md) 
