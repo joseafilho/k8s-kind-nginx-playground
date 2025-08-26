@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Unified script to create environment with or without GUI
-# Usage: ./create-environment.sh --gui --memory 8192 --cpus 4
-# Usage: ./create-environment.sh --no-gui --memory 4096 --cpus 2
+# Usage: ./create-environment.sh --vagrant --gui --memory 8192 --cpus 4
+# Usage: ./create-environment.sh --vagrant --no-gui --memory 4096 --cpus 2
 # Usage: ./create-environment.sh --aws --instance-type t3a.medium --region us-east-1
 
 set -e
@@ -13,7 +13,7 @@ CPUS=2
 GUI=false
 WITH_GUI=""
 INSTALL_BROWSER=""
-PROVIDER="local"
+PROVIDER="vagrant"
 AWS_INSTANCE_TYPE="t3a.medium"
 AWS_REGION="us-east-1"
 AWS_KEY_NAME=""
@@ -27,7 +27,8 @@ AWS_PUBLIC_IP=""
 show_usage() {
     echo "Usage: $0 [OPTIONS]"
     echo ""
-    echo "Local Environment Options:"
+    echo "Vagrant Environment Options (default):"
+    echo "  --vagrant               Install environment using Vagrant (default)"
     echo "  --gui                   Install environment with GUI (Xubuntu + Firefox)"
     echo "  --no-gui                Install environment without GUI (terminal only)"
     echo "  --memory MB             Memory in MB (default: 4096)"
@@ -48,7 +49,8 @@ show_usage() {
     echo "  --help                  Show this help message"
     echo ""
     echo "Examples:"
-    echo "  Local with GUI:"
+    echo "  Vagrant with GUI (default):"
+    echo "    $0 --vagrant --gui --memory 8192 --cpus 4"
     echo "    $0 --gui --memory 8192 --cpus 4"
     echo "    $0 --no-gui --memory 2048 --cpus 1"
     echo ""
@@ -189,6 +191,10 @@ deploy_to_aws() {
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --vagrant)
+            PROVIDER="vagrant"
+            shift
+            ;;
         --gui)
             GUI=true
             WITH_GUI="1"
@@ -258,9 +264,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Validate required parameters
-if [ "$PROVIDER" = "local" ]; then
+if [ "$PROVIDER" = "vagrant" ]; then
     if [ "$GUI" != true ] && [ "$GUI" != false ]; then
-        echo "❌ Error: You must specify either --gui or --no-gui for local deployment"
+        echo "❌ Error: You must specify either --gui or --no-gui for vagrant deployment"
         show_usage
         exit 1
     fi
@@ -284,7 +290,7 @@ echo "=========================================="
 echo "Creating Environment"
 echo "=========================================="
 echo "Provider: $PROVIDER"
-if [ "$PROVIDER" = "local" ]; then
+if [ "$PROVIDER" = "vagrant" ]; then
     echo "GUI Mode: $([ "$GUI" = true ] && echo "Enabled" || echo "Disabled")"
     echo "Memory: ${MEMORY}MB"
     echo "CPUs: ${CPUS}"
@@ -300,9 +306,9 @@ elif [ "$PROVIDER" = "aws" ]; then
 fi
 echo "=========================================="
 
-# Function to deploy to AWS
-deploy_to_local_vagrant() {
-    # Local deployment (existing logic)
+# Function to deploy to Vagrant
+deploy_to_vagrant() {
+    # Vagrant deployment
     echo "🛑 Stopping and destroying existing VM..."
     vagrant halt
     vagrant destroy -f
@@ -358,5 +364,5 @@ deploy_to_local_vagrant() {
 if [ "$PROVIDER" = "aws" ]; then
     deploy_to_aws
 else
-    deploy_to_local_vagrant
+    deploy_to_vagrant
 fi 
