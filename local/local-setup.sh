@@ -16,4 +16,4 @@
 ./installers/harbor-install.sh --local-debug
 ./installers/postgres-install.sh --local-debug
 ./installers/ecom-python-install.sh --local-debug
-# ../installers/observability-install.sh
+./installers/observability-install.sh --local-debug
