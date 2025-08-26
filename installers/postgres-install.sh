@@ -1,6 +1,15 @@
 #!/bin/bash
 # Script to install postgres.
 
+# Check if the --local-debug parameter was passed
+POSTGRES_DIR="./playground/pgadmin"
+for arg in "$@"; do
+  if [ "$arg" == "--local-debug" ]; then
+    POSTGRES_DIR="./pgadmin"
+    break
+  fi
+done
+
 set -e
 
 echo "=========================================="
@@ -30,7 +39,7 @@ sudo bash -c 'echo "127.0.0.1 pgadmin.local" >> /etc/hosts'
 # Install pgadmin.
 echo "🚀 Installing pgadmin..."
 helm install pgadmin runix/pgadmin4 --set env.email=admin@admin.com --set env.password=admin-user --set service.type=ClusterIP --namespace postgresql
-kubectl apply -f ./playground/pgadmin/pgadmin-ing.yaml
+kubectl apply -f $POSTGRES_DIR/pgadmin-ing.yaml
 
 echo ""
 echo "=========================================="
