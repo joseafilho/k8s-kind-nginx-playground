@@ -1,0 +1,84 @@
+# Elasticsearch values for development/testing - Version 7.17.x LTS
+replicas: 1
+
+# Use Elasticsearch 7.17.x LTS version
+imageTag: "7.17.9"
+
+esJavaOpts: "-Xms512m -Xmx512m"
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "100m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+
+volumeClaimTemplate:
+  accessModes: [ "ReadWriteOnce" ]
+  resources:
+    requests:
+      storage: 5Gi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Disable security for development
+esConfig:
+  elasticsearch.yml: |
+    xpack.security.enabled: false
+    xpack.security.http.ssl.enabled: false
+    xpack.security.transport.ssl.enabled: false
+    cluster.name: "elasticsearch"
+    node.name: "elasticsearch-0"
+    discovery.type: "single-node"
+
+# Override environment variables
+extraEnvVars:
+  - name: "discovery.type"
+    value: "single-node"
+  - name: "cluster.initial_master_nodes"
+    value: ""
+
+# Disable cluster configuration
+clusterConfig:
+  enabled: false
+
+# Override the readiness probe to not use authentication
+readinessProbe:
+  exec:
+    command:
+      - bash
+      - -c
+      - |
+        curl -f http://localhost:9200/_cluster/health?wait_for_status=green&timeout=1s || exit 1
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+# Service configuration
+service:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 9200
+      targetPort: 9200
+    - name: transport
+      port: 9300
+      targetPort: 9300
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: elasticsearch.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []

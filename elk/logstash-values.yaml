@@ -1,0 +1,57 @@
+# Logstash values for development/testing - Version 7.17.x LTS
+replicas: 1
+
+# Use Logstash 7.17.x LTS version
+imageTag: "7.17.9"
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "200m"
+
+# Logstash configuration
+logstashConfig:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+# Pipeline configuration for basic log processing
+pipelineConfig:
+  logstash.conf: |
+    input {
+      tcp {
+        port => 5000
+      }
+    }
+    
+    output {
+      elasticsearch {
+        hosts => ["elasticsearch:9200"]
+        index => "logstash-%{+YYYY.MM.dd}"
+      }
+      stdout {
+        codec => rubydebug
+      }
+    }
+
+# Service configuration
+service:
+  type: ClusterIP
+  ports:
+    - name: beats
+      port: 5044
+      targetPort: 5044
+    - name: tcp
+      port: 5000
+      targetPort: 5000
+    - name: udp
+      port: 5000
+      targetPort: 5000
+      protocol: UDP
+
+# Volume for persistent data
+persistence:
+  enabled: false

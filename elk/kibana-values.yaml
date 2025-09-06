@@ -1,0 +1,56 @@
+# Kibana values for development/testing - Version 7.17.x LTS
+replicas: 1
+
+# Use Kibana 7.17.x LTS version
+imageTag: "7.17.9"
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "200m"
+
+# Disable security for development
+kibanaConfig:
+  kibana.yml: |
+    server.host: "0.0.0.0"
+    server.shutdownTimeout: "5s"
+    elasticsearch.hosts: ["http://elasticsearch:9200"]
+    xpack.security.enabled: false
+    xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters_long"
+
+# Disable security features
+extraEnvVars:
+  - name: "ELASTICSEARCH_HOSTS"
+    value: "http://elasticsearch:9200"
+  - name: "XPACK_SECURITY_ENABLED"
+    value: "false"
+
+# Disable certificate mounting
+secretMounts: []
+
+# Service configuration
+service:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 5601
+      targetPort: 5601
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: kibana.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Health check
+healthCheckPath: "/api/status"
