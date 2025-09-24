@@ -1,4 +1,6 @@
-# K8S Playground
+# K8S Playground - Repo Deprecated
+
+- [GreenCap K8s - New Repo](https://github.com/greencapk8s/greencap-k8s)
 
 ## Descrição
 
